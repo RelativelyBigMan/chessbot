@@ -61,14 +61,18 @@ def check_valid_knight(x1,y1,x2,y2):
 def check_valid_bishop(x1,y1,x2,y2):
     possibleMoves = []
     for iii in range(8):
-        if (0 <= x1+iii <= 7 and 0 <= y1+iii <= 7):
-            possibleMoves.append((x1+iii,y1+iii))
-        if (0 <= x1-iii <= 7 and 0 <= y1-iii <= 7):
-            possibleMoves.append((x1-iii,y1-iii))
-        if (0 <= x1-iii <= 7 and 0 <= y1+iii <= 7):
-            possibleMoves.append((x1-iii,y1+iii))
-        if (0 <= x1+iii <= 7 and 0 <= y1-iii <= 7):
-            possibleMoves.append((x1+iii,y1-iii))
+        possibleMoves.append((x1+iii,y1+iii))
+        possibleMoves.append((x1-iii,y1-iii))
+        possibleMoves.append((x1-iii,y1+iii))
+        possibleMoves.append((x1+iii,y1-iii))
+        # if (0 <= x1+iii <= 7 and 0 <= y1+iii <= 7):
+        #     possibleMoves.append((x1+iii,y1+iii))
+        # if (0 <= x1-iii <= 7 and 0 <= y1-iii <= 7):
+        #     possibleMoves.append((x1-iii,y1-iii))
+        # if (0 <= x1-iii <= 7 and 0 <= y1+iii <= 7):
+        #     possibleMoves.append((x1-iii,y1+iii))
+        # if (0 <= x1+iii <= 7 and 0 <= y1-iii <= 7):
+        #     possibleMoves.append((x1+iii,y1-iii))
 
     if (x2,y2) in possibleMoves:
         return True
@@ -79,14 +83,19 @@ def check_valid_queen(x1,y1,x2,y2):
     for iii in range(8):
         possibleMoves.append((iii,y1))
         possibleMoves.append((x1,iii))
-        if (0 <= x1+iii <= 7 and 0 <= y1+iii <= 7):
-            possibleMoves.append((x1+iii,y1+iii))
-        if (0 <= x1-iii <= 7 and 0 <= y1-iii <= 7):
-            possibleMoves.append((x1-iii,y1-iii))
-        if (0 <= x1-iii <= 7 and 0 <= y1+iii <= 7):
-            possibleMoves.append((x1-iii,y1+iii))
-        if (0 <= x1+iii <= 7 and 0 <= y1-iii <= 7):
-            possibleMoves.append((x1+iii,y1-iii))
+        possibleMoves.append((x1+iii,y1+iii))
+        possibleMoves.append((x1-iii,y1-iii))
+        possibleMoves.append((x1-iii,y1+iii))
+        possibleMoves.append((x1+iii,y1-iii))
+
+        # if (0 <= x1+iii <= 7 and 0 <= y1+iii <= 7):
+        #     possibleMoves.append((x1+iii,y1+iii))
+        # if (0 <= x1-iii <= 7 and 0 <= y1-iii <= 7):
+        #     possibleMoves.append((x1-iii,y1-iii))
+        # if (0 <= x1-iii <= 7 and 0 <= y1+iii <= 7):
+        #     possibleMoves.append((x1-iii,y1+iii))
+        # if (0 <= x1+iii <= 7 and 0 <= y1-iii <= 7):
+        #     possibleMoves.append((x1+iii,y1-iii))
 
     if (x2,y2) in possibleMoves:
         return True
