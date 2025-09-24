@@ -1,25 +1,36 @@
-# firstMove = True
+import Check
+colourTurn = True # True is white, black is False
 # NDUG = True
+
+# TODO: MAKE THE check_valid() functions not check any further values if there is a piece in the way
+# when get_pawn_moves() is called make another parameter to make sure pawn movign forward isnt included whne checking for check
+
+def piece_to_letter(Type,Colour):
+    if not(Type and Colour):
+        return "."
+    letter = Type[0]
+    if Colour == "Black":
+        return letter.lower()
+    else:
+        return letter.upper()
+
+def print_row(state):
+    string = "   0  1  2  3  4  5  6  7   X"
+    print(string)
+    for row in range(len(state)):
+        print(row, state[row])
+    print("\nY\n")
+
 class Piece:
     def __init__(self, Type, Colour, FirstMove):
         self.Type = Type
         self.Colour = Colour
         self.FirstMove = FirstMove
 
-    def __str__(self):
-        if self.Type and self.Colour:
-            return f"{self.Type} {self.Colour}"
-        return "empty"
-    
     def __repr__(self):
-        return self.__str__()
-
-def print_row(state):
-    for row in state:
-        print(row)
+        return piece_to_letter(self.Type,self.Colour)
 
 def create_board():
-    global state
     pieces = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"]
     pawns = ["pawn" for _ in range(8)]
     state = [[Piece(None,None,None) for _ in range(8)] for _ in range(8)]
@@ -37,138 +48,22 @@ def get_input():
     return ((x1,y1,x2,y2))
     
 
-def check_valid_rook(x1,y1,x2,y2):  
-    possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((iii,y1))
-        possibleMoves.append((x1,iii))
-
-    if (x2,y2) in possibleMoves:
-        return True
-    print("Rook can't move there")
-    return False
-
-def check_valid_knight(x1,y1,x2,y2):
-    possibleMoves = []
-    deltas = [(-2, -1), (-2, 1), (2, -1), (2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2)]
-    for delta in deltas:
-        deltaX,deltaY = delta[0], delta[1]
-        possibleMoves.append((deltaX+x1,deltaY+y1))
-
-    if (x2,y2) in possibleMoves:
-        return True
-    print("Knight can't move there")
-    return False
-
-def check_valid_bishop(x1,y1,x2,y2):
-    possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((x1+iii,y1+iii))
-        possibleMoves.append((x1-iii,y1-iii))
-        possibleMoves.append((x1-iii,y1+iii))
-        possibleMoves.append((x1+iii,y1-iii))
-
-    if (x2,y2) in possibleMoves:
-        return True
-    print("Bishop can't move there")
-    return False
-
-def check_valid_queen(x1,y1,x2,y2):
-    possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((iii,y1))
-        possibleMoves.append((x1,iii))
-        possibleMoves.append((x1+iii,y1+iii))
-        possibleMoves.append((x1-iii,y1-iii))
-        possibleMoves.append((x1-iii,y1+iii))
-        possibleMoves.append((x1+iii,y1-iii))
-
-
-    if (x2,y2) in possibleMoves:
-        return True
-    print("Queen can't move there")
-    return False
-    
-def check_valid_king(x1,y1,x2,y2):
-    possibleMoves = []
-    deltas = [(i, u) for i in range(-1, 2) for u in range(-1, 2)]
-    for delta in deltas:
-        deltaX,deltaY = delta[0], delta[1]
-        possibleMoves.append((deltaX+x1,deltaY+y1))
-    if (x2,y2) in possibleMoves:
-        return True
-    print("King can't move there")
-    return False
-
-
-def check_valid_pawn(x1,y1,x2,y2):
-    possibleMoves = []
-
-    # tells us direction of the piece
-    if state[y1][x1].Colour == "White":
-        direction = 1
-    else:
-        direction = -1
-    
-    # adds the move forward 1 or 2 if its the pawns first move
-    possibleMoves.append((x1,y1+(1*direction)))
-    if (state[y1][x1].FirstMove == True):
-        state[y1][x1].FirstMove = False
-        possibleMoves.append((x1,y1+(2*direction)))
-
-
-    #Finds attacking moves
-    if state[y2][x2].Type:
-        possibleMoves.append((x1+1,y1+(1*direction)))
-        possibleMoves.append((x1-1,y1+(1*direction)))
-    
-    if (x2,y2) in possibleMoves:
-        return True
-    print("Pawn can't move there")
-    return False
-
-def check_valid(userInput):
-    x1,y1,x2,y2 = userInput
-    if (x1,y1) == (x2,y2):
-        print("You can't move a piece to where it already is")
-        return False
-    
-    if state[y1][x1].Colour == state[y2][x2].Colour:
-        print("You can't capture your own piece")
-        return False
-    
-    if not (0 <= x1 <= 7 and 0 <= y1 <= 7 and 0 <= x2 <= 7 and 0 <= y2 <= 7):
-        print("Your trying to move a piece out of the board")
-        return False
-
-
-    typePiece = state[y1][x1].Type
-
-
-    match typePiece:
-        # no fallthrough happening here lol
-        case None:
-            return False
-        case "rook":
-            return check_valid_rook(x1,y1,x2,y2)
-        case "knight":
-            return check_valid_knight(x1,y1,x2,y2)
-        case "bishop":
-            return check_valid_bishop(x1,y1,x2,y2)
-        case "queen":
-            return check_valid_queen(x1,y1,x2,y2)
-        case "king":
-            return check_valid_king(x1,y1,x2,y2)
-        case "pawn":
-            return check_valid_pawn(x1,y1,x2,y2)
-        
-    
-
-
 if __name__=="__main__":
     state = create_board()
-    print_row(state)
-    userInput = get_input()
-    print(check_valid(userInput))
+    while True:
+        if colourTurn == True:
+            print("It is white's move\n")
+        else:
+            print("It is black's move\n")
+
+        print_row(state)
+        userInput = get_input()
+        if (Check.check_valid(userInput)):
+            x1,y1,x2,y2 = userInput
+            state[y2][x2] = state[y1][x1]
+            state[y1][x1] = Piece(None,None,None)
+            colourTurn = True ^ colourTurn # switches the colour Turn
+
+    
 
 
