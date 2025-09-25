@@ -1,5 +1,6 @@
-import Check
+import Check as C
 colourTurn = True # True is white, black is False
+state = None
 # NDUG = True
 
 # TODO: MAKE THE check_valid() functions not check any further values if there is a piece in the way
@@ -46,19 +47,19 @@ def get_input():
     x2,y2 = input("Where would you like to move it to: ").split(" ")
     x1,y1,x2,y2 = int(x1), int(y1), int(x2), int(y2)
     return ((x1,y1,x2,y2))
-    
 
 if __name__=="__main__":
     state = create_board()
+
     while True:
         if colourTurn == True:
             print("It is white's move\n")
         else:
             print("It is black's move\n")
-
+        print(C.get_moves_bishop(2,0,0,2,state))
         print_row(state)
         userInput = get_input()
-        if (Check.check_valid(userInput)):
+        if (C.check_valid(userInput,colourTurn,state)):
             x1,y1,x2,y2 = userInput
             state[y2][x2] = state[y1][x1]
             state[y1][x1] = Piece(None,None,None)

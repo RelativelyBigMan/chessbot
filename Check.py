@@ -1,8 +1,47 @@
-def check_valid_rook(x1,y1,x2,y2):  
+def get_moves_rook(x1,y1,x2,y2,state):
     possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((iii,y1))
-        possibleMoves.append((x1,iii))
+    for iii in range(x1+1,8):
+        if not(state[y1][iii].Type):
+            possibleMoves.append((iii,y1))
+        elif state[y1][iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((iii,y1))
+            break
+        else:
+            break
+    
+    for iii in range(x1-1,-1,-1):
+        if not(state[y1][iii].Type):
+            possibleMoves.append((iii,y1))
+        elif state[y1][iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((iii,y1))
+            break
+        else:
+            break
+
+
+    for iii in range(y1+1,8):
+        if not(state[iii][x1].Type):
+            possibleMoves.append((x1,iii))
+        elif state[iii][x1].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1,iii))
+            break
+        else:
+            break
+    
+    for iii in range(y1-1,-1,-1):
+        if not(state[iii][x1].Type):
+            possibleMoves.append((x1,iii))
+        elif state[iii][x1].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1,iii))
+            break
+        else:
+            break
+
+    return possibleMoves
+
+
+def check_valid_rook(x1,y1,x2,y2,state):  
+    possibleMoves = get_moves_rook(x1,y1,x2,y2,state)
 
     if (x2,y2) in possibleMoves:
         return True
@@ -18,49 +57,81 @@ def get_moves_knight(x1,y1):
         possibleMoves.append((deltaX+x1,deltaY+y1))
     return possibleMoves
 
-def check_valid_knight(x1,y1,x2,y2):
+def check_valid_knight(x1,y1,x2,y2,state):
     possibleMoves = get_moves_knight(x1,y1)
     if (x2,y2) in possibleMoves:
         return True
     print("Knight can't move there")
     return False
 
-def get_moves_bishop(x1,y1):
+def get_moves_bishop(x1,y1,x2,y2,state):
     possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((x1+iii,y1+iii))
-        possibleMoves.append((x1-iii,y1-iii))
-        possibleMoves.append((x1-iii,y1+iii))
-        possibleMoves.append((x1+iii,y1-iii))
+    for iii in range(1,min(7-x1,7-y1)+1):
+
+        if not(state[y1+iii][x1+iii].Type):
+            possibleMoves.append((x1+iii,y1+iii))
+        elif state[y1+iii][x1+iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1+iii,y1+iii))
+            break
+        else:
+            break
+        
+    
+    for iii in range(1,min(x1,y1)+1):
+
+        if not(state[y1-iii][x1-iii].Type):
+            possibleMoves.append((x1-iii,y1-iii))
+        elif state[y1-iii][x1-iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1-iii,y1-iii))
+            break
+        else:
+            break
+        
+
+    for iii in range(1,min(x1,7-y1)+1):
+
+        if not(state[y1+iii][x1-iii].Type):
+            possibleMoves.append((x1-iii,y1+iii))
+        elif state[y1+iii][x1-iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1-iii,y1+iii))
+            break
+        else:
+            break
+        
+
+    for iii in range(1,min(7-x1,y1)+1):
+
+        if not(state[y1-iii][x1+iii].Type):
+            possibleMoves.append((x1+iii,y1-iii))
+        elif state[y1-iii][x1+iii].Colour != state[y1][x1].Colour:
+            possibleMoves.append((x1+iii,y1-iii))
+            break
+        else:
+            break
+        
     return possibleMoves
 
-def check_valid_bishop(x1,y1,x2,y2):
-    possibleMoves = get_moves_bishop(x1,y1)
+
+def check_valid_bishop(x1,y1,x2,y2,state):
+    possibleMoves = get_moves_bishop(x1,y1,x2,y2,state)
     if (x2,y2) in possibleMoves:
         return True
     print("Bishop can't move there")
     return False
 
-def get_moves_queen(x1,y1):
-    possibleMoves = []
-    for iii in range(8):
-        possibleMoves.append((iii,y1))
-        possibleMoves.append((x1,iii))
-        possibleMoves.append((x1+iii,y1+iii))
-        possibleMoves.append((x1-iii,y1-iii))
-        possibleMoves.append((x1-iii,y1+iii))
-        possibleMoves.append((x1+iii,y1-iii))
+def get_moves_queen(x1,y1,x2,y2,state):
+    possibleMoves = get_moves_bishop(x1,y1,x2,y2,state) + get_moves_rook(x1,y1,x2,y2,state)
     return possibleMoves
 
 
-def check_valid_queen(x1,y1,x2,y2):
-    possibleMoves = get_moves_queen(x1,y1)
+def check_valid_queen(x1,y1,x2,y2,state):
+    possibleMoves = get_moves_queen(x1,y1,x2,y2,state)
     if (x2,y2) in possibleMoves:
         return True
     print("Queen can't move there")
     return False
     
-def get_moves_king(x1,y1):
+def get_moves_king(x1,y1,x2,y2,state):
     possibleMoves = []
     deltas = [(i, u) for i in range(-1, 2) for u in range(-1, 2)]
     for delta in deltas:
@@ -69,14 +140,14 @@ def get_moves_king(x1,y1):
     return possibleMoves
 
 
-def check_valid_king(x1,y1,x2,y2):
-    possibleMoves = get_moves_king
+def check_valid_king(x1,y1,x2,y2,state):
+    possibleMoves = get_moves_king(x1,y1,x2,y2,state)
     if (x2,y2) in possibleMoves:
         return True
     print("King can't move there")
     return False
 
-def get_moves_pawn(x1,y1):
+def get_moves_pawn(x1,y1,x2,y2,state):
     possibleMoves = []
 
     # tells us direction of the piece
@@ -91,7 +162,6 @@ def get_moves_pawn(x1,y1):
         state[y1][x1].FirstMove = False
         possibleMoves.append((x1,y1+(2*direction)))
 
-
     #Finds attacking moves
     if state[y2][x2].Type:
         possibleMoves.append((x1+1,y1+(1*direction)))
@@ -99,14 +169,16 @@ def get_moves_pawn(x1,y1):
 
     return possibleMoves
 
-def check_valid_pawn(x1,y1,x2,y2):
-    possibleMoves = get_moves_pawn(x1,y1)
+def check_valid_pawn(x1,y1,x2,y2,state):
+    possibleMoves = get_moves_pawn(x1,y1,x2,y2,state)
     if (x2,y2) in possibleMoves:
         return True
     print("Pawn can't move there")
     return False
 
-def check_valid(userInput):
+
+
+def check_valid(userInput,colourTurn,state):
     x1,y1,x2,y2 = userInput
     if (x1,y1) == (x2,y2):
         print("You can't move a piece to where it already is")
@@ -134,19 +206,19 @@ def check_valid(userInput):
 
     typePiece = state[y1][x1].Type
 
-
+    print(state)
     match typePiece:
         case None:
             return False
         case "rook":
-            return check_valid_rook(x1,y1,x2,y2)
+            return check_valid_rook(x1,y1,x2,y2,state)
         case "knight":
-            return check_valid_knight(x1,y1,x2,y2)
+            return check_valid_knight(x1,y1,x2,y2,state)
         case "bishop":
-            return check_valid_bishop(x1,y1,x2,y2)
+            return check_valid_bishop(x1,y1,x2,y2,state)
         case "queen":
-            return check_valid_queen(x1,y1,x2,y2)
+            return check_valid_queen(x1,y1,x2,y2,state)
         case "king":
-            return check_valid_king(x1,y1,x2,y2)
+            return check_valid_king(x1,y1,x2,y2,state)
         case "pawn":
-            return check_valid_pawn(x1,y1,x2,y2)
+            return check_valid_pawn(x1,y1,x2,y2,state)
