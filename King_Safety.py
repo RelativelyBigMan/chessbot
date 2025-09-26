@@ -3,13 +3,21 @@ import Move_Validation as M
 
 def get_check(colourTurn,state):
     all_moves = []
+
+    if colourTurn:
+        curColour = "White"
+    else:
+        curColour = "Black"
+
     for yyy in range(8):
         for xxx in range(8):
             if state[yyy][xxx].Colour == None:
                 continue
             # print(all_moves)
             typePiece,Colour = state[yyy][xxx].Type, state[yyy][xxx].Colour
-            if colourTurn and Colour == "White":
+            if Colour == curColour:
+                if typePiece == "king":
+                    king_pos = (xxx,yyy)
                 match typePiece:
                     case None:
                         continue
@@ -26,4 +34,8 @@ def get_check(colourTurn,state):
                     case "pawn":
                         all_moves.append(M.get_moves_pawn(xxx,yyy,state))
 
-    print(all_moves)
+
+    if king_pos in all_moves:
+        return True
+    else:
+        return False

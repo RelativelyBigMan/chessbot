@@ -1,4 +1,4 @@
-# TODO: FIX EDGE CASES WITH PIECES, make sure no errors whenever it is at the x = 7
+
 
 # Stops out of range errors
 def get_index(x,y,state):
