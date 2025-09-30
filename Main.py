@@ -1,9 +1,10 @@
 import Move_Validation as M
 import King_Safety as K
+import sys
 colourTurn = True # True is white, black is False
 state = None
 check = False
-# NDUG = True
+# NDEBUG = True
 
 
 def piece_to_letter(Type,Colour):
@@ -45,42 +46,58 @@ def create_board():
     return state
 
 def get_input():
-    print("Example input:('1 2' These are x and y respectively")
-    x1,y1 = input("What would you like to move: ").split(" ")
-    x2,y2 = input("Where would you like to move it to: ").split(" ")
-    x1,y1,x2,y2 = int(x1)-1, int(y1)-1, int(x2)-1, int(y2)-1
-    return ((x1,y1,x2,y2))
+    print("Example input: '1 2' These are x and y respectively")
+    while True:
+        try:
+            x1,y1 = input("What would you like to move: ").split()
+            x2,y2 = input("Where would you like to move it to: ").split()
+            x1,y1,x2,y2 = int(x1)-1, int(y1)-1, int(x2)-1, int(y2)-1
+            return (x1,y1,x2,y2)
+        except KeyboardInterrupt:
+            print("\n")
+            sys.exit()
+        except (ValueError, IndexError):
+            print("Invalid input, go again")
 
 
-
-    
 
 if __name__=="__main__":
     state = create_board()
-
     while True:
         if colourTurn == True:
             print("It is white's move\n")
         else:
             print("It is black's move\n")
-        
         if check == True:
             print("Check has been instaniated, either move the king or move a piece into the way")
         print_row(state)
         userInput = get_input()
-        if (M.check_valid(userInput,colourTurn,state)):
+        if M.check_valid(userInput,colourTurn,state):
             x1,y1,x2,y2 = userInput
-            state[y2][x2] = state[y1][x1]
+            src_piece = state[y1][x1]
+            dst_piece = state[y2][x2]
+            state[y2][x2] = src_piece
             state[y1][x1] = Piece(None,None,None)
-            if K.get_check(colourTurn,state):
-                state[y1][x1] = state[y2][x2]
-                state[y2][x2] = Piece(None,None,None)
-                print("you did not stop the check, fix the check\n")
+            if K.get_check(colourTurn, state):
+                print("Illegal move: your king would be in check")
+                # undo
+                state[y1][x1] = src_piece
+                state[y2][x2] = dst_piece
                 continue
-                
-            colourTurn = True ^ colourTurn # switches the colour Turn
+
+            if state[y2][x2] is not None:
+                state[y2][x2].FirstMove = False
+
+            opponent = not colourTurn
+            if K.get_check(opponent, state):
+                if K.get_checkmate(opponent, state):
+                    print("Checkmate")
+                    sys.exit()
+                else:
+                    print("Opponent is in check")
+            colourTurn = not(colourTurn) # switches the colour Turn
 
 
-    
+
 
 
