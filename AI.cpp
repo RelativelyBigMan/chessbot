@@ -2,20 +2,20 @@
 #include <iostream>
 #include <cstdint>
 #include <bitset>
-#include <vector>
+#include <array>
 
-const int up{-8};
-const int down{8};
-const int right{1};
-const int left{-1};
-const int upRight{-7};
-const int upLeft{-9};
-const int downRight{9};
-const int downLeft{7};
+const int NORTH{-8};
+const int SOUTH{8};
+const int WEST{1};
+const int EAST{-1};
+const int NORTH_EAST{-7};
+const int NORTH_WEST{-9};
+const int SOUTH_EAST{9};
+const int SOUTH_WEST{7};
 
 
 
-struct piece
+struct BoardState
 {
     std::bitset<64> whiteKing{};
     std::bitset<64> whiteQueen{};
@@ -36,17 +36,26 @@ struct piece
     std::bitset<64> allPieces{};
 };
 
-struct allMoves
-{
-    std::vector<std::bitset<64>> kingMoves{};
-    std::vector<std::bitset<64>> queenMoves{};
-    std::vector<std::bitset<64>> bishopsMoves{};
-    std::vector<std::bitset<64>> knightsMoves{};
-    std::vector<std::bitset<64>> rooksMoves{};
-    std::vector<std::bitset<64>> pawnsMoves{};
+struct PrecomputedMoveTables {
+    std::array<std::bitset<64>, 64> kingMoves{};
+    std::array<std::bitset<64>, 64> queenMoves{};
+    std::array<std::bitset<64>, 64> bishopsMoves{};
+    std::array<std::bitset<64>, 64> knightsMoves{};
+    std::array<std::bitset<64>, 64> rooksMoves{};
+    std::array<std::bitset<64>, 64> pawnsMoves{};
 };
 
-void get_fen(piece &P)
+struct MoveBitboards {
+    std::bitset<64> king{};
+    std::bitset<64> queen{};
+    std::bitset<64> bishops{};
+    std::bitset<64> knights{};
+    std::bitset<64> rooks{};
+    std::bitset<64> pawns{};
+    std::bitset<64> attackingPawns{};
+};
+
+void get_fen(BoardState &P)
 {
     P.whiteKing = 1ULL << 4;
     P.whiteQueen = 1ULL << 3;
@@ -62,65 +71,65 @@ void get_fen(piece &P)
     P.blackRooks = (1ULL << 56) | (1ULL << 63);
     P.blackPawns = 71776119061217280ULL;
 
-    P.whitePieces = P.whiteKing | P.whiteKing | P.whiteBishops | P.whiteKnights | P.whiteRooks | P.whitePawns;
-    P.blackPieces = P.blackKing | P.blackKing | P.blackBishops | P.blackKnights | P.blackRooks | P.blackPawns;
+    P.whitePieces = P.whiteKing | P.whiteBishops | P.whiteKnights | P.whiteRooks | P.whitePawns;
+    P.blackPieces = P.blackKing | P.blackBishops | P.blackKnights | P.blackRooks | P.blackPawns;
     P.allPieces = P.blackPieces | P.whitePieces;
 };
 
-std::bitset<64> get_rook_moves(int index)
+constexpr std::bitset<64> get_rook_moves(int index)
 {
     std::bitset<64> moves = 0ULL;
 
     // Up
-    for (int i = index + up; i >= 0; i += up)
+    for (int i = index + NORTH; i >= 0; i += NORTH)
         moves.set(i);
 
     // Down
-    for (int i = index + down; i < 64; i += down)
+    for (int i = index + SOUTH; i < 64; i += SOUTH)
         moves.set(i);
 
     // Right
-    for (int i = index + right; i % 8 != 0; i += right)
+    for (int i = index + WEST; i % 8 != 0; i += WEST)
         moves.set(i);
 
     // Left
-    for (int i = index + left; i % 8 != 7 && i >= 0; i += left)
+    for (int i = index + EAST; i % 8 != 7 && i >= 0; i += EAST)
         moves.set(i);
 
     return moves;
 }
 
 
-// ------------------ BISHOP ------------------
-std::bitset<64> get_bishop_moves(int index)
+
+constexpr std::bitset<64> get_bishop_moves(int index)
 {
     std::bitset<64> moves = 0ULL;
 
     // Down-right
-    for (int i = index + downRight; i < 64 && (i % 8 != 0); i += downRight)
+    for (int i = index + SOUTH_EAST; i < 64 && (i % 8 != 0); i += SOUTH_EAST)
         moves.set(i);
 
     // Down-left
-    for (int i = index + downLeft; i < 64 && (i % 8 != 7); i += downLeft)
+    for (int i = index + SOUTH_WEST; i < 64 && (i % 8 != 7); i += SOUTH_WEST)
         moves.set(i);
 
     // Up-right
-    for (int i = index + upRight; i >= 0 && (i % 8 != 0); i += upRight)
+    for (int i = index + NORTH_EAST; i >= 0 && (i % 8 != 0); i += NORTH_EAST)
         moves.set(i);
 
     // Up-left
-    for (int i = index + upLeft; i >= 0 && (i % 8 != 7); i += upLeft)
+    for (int i = index + NORTH_WEST; i >= 0 && (i % 8 != 7); i += NORTH_WEST)
         moves.set(i);
 
     return moves;
 }
 
 
-// ------------------ KING ------------------
-std::bitset<64> get_king_moves(int index)
+
+constexpr std::bitset<64> get_king_moves(int index)
 {
     std::bitset<64> moves = 0ULL;
-    const int directions[8] = {up, down, left, right, upLeft, upRight, downLeft, downRight};
+    const int directions[8] = {NORTH, SOUTH, EAST, WEST, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST};
 
     for (int dir : directions)
     {
@@ -135,8 +144,8 @@ std::bitset<64> get_king_moves(int index)
     return moves;
 }
 
-// ------------------ KNIGHT ------------------
-std::bitset<64> get_knight_moves(int index)
+
+constexpr std::bitset<64> get_knight_moves(int index)
 {
     std::bitset<64> moves = 0ULL;
     const int offsets[8] = {17, 15, 10, 6, -17, -15, -10, -6};
@@ -155,17 +164,17 @@ std::bitset<64> get_knight_moves(int index)
     return moves;
 }
 
-// ------------------ QUEEN ------------------
-std::bitset<64> get_queen_moves(int index)
+
+constexpr std::bitset<64> get_queen_moves(int index)
 {
     return get_rook_moves(index) | get_bishop_moves(index);
 }
 
-// ------------------ PAWN ------------------
-std::bitset<64> get_pawn_moves(int index, bool isWhite = true)
+
+constexpr std::bitset<64> get_pawn_moves(int index, bool isWhite = true)
 {
     std::bitset<64> moves = 0ULL;
-    int dir = isWhite ? up : down;
+    int dir = isWhite ? NORTH : SOUTH;
     int startRank = isWhite ? 1 : 6;
     int rank = index / 8;
 
@@ -185,32 +194,38 @@ std::bitset<64> get_pawn_moves(int index, bool isWhite = true)
     return moves;
 }
 
-allMoves createAllMoves(){
+constexpr PrecomputedMoveTables createAllMoves(){
 
-    allMoves bitMaskMoves{};
+    PrecomputedMoveTables bitMaskMoves{};
     auto& m = bitMaskMoves;
-    m.kingMoves.reserve(64);
-    m.queenMoves.reserve(64);
-    m.bishopsMoves.reserve(64);
-    m.knightsMoves.reserve(64);
-    m.rooksMoves.reserve(64);
-    m.pawnsMoves.reserve(64);
     
     for (int iii{};iii < 64; ++iii){
-        m.kingMoves.push_back(get_king_moves(iii));
-        m.queenMoves.push_back(get_queen_moves(iii));
-        m.bishopsMoves.push_back(get_bishop_moves(iii));
-        m.knightsMoves.push_back(get_knight_moves(iii));
-        m.rooksMoves.push_back(get_rook_moves(iii));
-        m.pawnsMoves.push_back(get_pawn_moves(iii));
+        m.kingMoves[iii] = (get_king_moves(iii));
+        m.queenMoves[iii] = (get_queen_moves(iii));
+        m.bishopsMoves[iii] = (get_bishop_moves(iii));
+        m.knightsMoves[iii] = (get_knight_moves(iii));
+        m.rooksMoves[iii] = (get_rook_moves(iii));
+        m.pawnsMoves[iii] = (get_pawn_moves(iii));
     };
-    return m;
+    return bitMaskMoves;
+}
+
+void getAllMoves(PrecomputedMoveTables m, BoardState P, colour){
+    MoveBitboards {};
+
+
 }
 
 int main()
 {
-    piece P{};
+    int colour{2}; // probaly could make it 1 bit but not much of a improvement in efficency
+    BoardState P{};
     get_fen(P);
-    allMoves bitMaskMoves{createAllMoves()};
+    constexpr PrecomputedMoveTables bitMaskMoves{createAllMoves()};
+
+    getAllMoves(bitMaskMoves, P,colour);
     return 0;
 };
+
+
+
