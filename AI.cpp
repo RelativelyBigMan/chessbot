@@ -1,8 +1,10 @@
+typedef uint64_t U64;
 #include <string>
 #include <iostream>
 #include <cstdint>
 #include <bitset>
 #include <array>
+
 
 const int NORTH{-8};
 const int SOUTH{8};
@@ -17,42 +19,42 @@ const int SOUTH_WEST{7};
 
 struct BoardState
 {
-    std::bitset<64> whiteKing{};
-    std::bitset<64> whiteQueen{};
-    std::bitset<64> whiteBishops{};
-    std::bitset<64> whiteKnights{};
-    std::bitset<64> whiteRooks{};
-    std::bitset<64> whitePawns{};
+    U64 whiteKing{};
+    U64 whiteQueen{};
+    U64 whiteBishops{};
+    U64 whiteKnights{};
+    U64 whiteRooks{};
+    U64 whitePawns{};
 
-    std::bitset<64> blackKing{};
-    std::bitset<64> blackQueen{};
-    std::bitset<64> blackBishops{};
-    std::bitset<64> blackKnights{};
-    std::bitset<64> blackRooks{};
-    std::bitset<64> blackPawns{};
+    U64 blackKing{};
+    U64 blackQueen{};
+    U64 blackBishops{};
+    U64 blackKnights{};
+    U64 blackRooks{};
+    U64 blackPawns{};
 
-    std::bitset<64> whitePieces{};
-    std::bitset<64> blackPieces{};
-    std::bitset<64> allPieces{};
+    U64 whitePieces{};
+    U64 blackPieces{};
+    U64 allPieces{};
 };
 
 struct PrecomputedMoveTables {
-    std::array<std::bitset<64>, 64> kingMoves{};
-    std::array<std::bitset<64>, 64> queenMoves{};
-    std::array<std::bitset<64>, 64> bishopsMoves{};
-    std::array<std::bitset<64>, 64> knightsMoves{};
-    std::array<std::bitset<64>, 64> rooksMoves{};
-    std::array<std::bitset<64>, 64> pawnsMoves{};
+    std::array<U64, 64> kingMoves{};
+    std::array<U64, 64> queenMoves{};
+    std::array<U64, 64> bishopsMoves{};
+    std::array<U64, 64> knightsMoves{};
+    std::array<U64, 64> rooksMoves{};
+    std::array<U64, 64> pawnsMoves{};
 };
 
 struct MoveBitboards {
-    std::bitset<64> king{};
-    std::bitset<64> queen{};
-    std::bitset<64> bishops{};
-    std::bitset<64> knights{};
-    std::bitset<64> rooks{};
-    std::bitset<64> pawns{};
-    std::bitset<64> attackingPawns{};
+    U64 king{};
+    U64 queen{};
+    U64 bishops{};
+    U64 knights{};
+    U64 rooks{};
+    U64 pawns{};
+    U64 attackingPawns{};
 };
 
 void get_fen(BoardState &P)
@@ -76,59 +78,66 @@ void get_fen(BoardState &P)
     P.allPieces = P.blackPieces | P.whitePieces;
 };
 
-constexpr std::bitset<64> get_rook_moves(int index)
+constexpr U64 get_rook_moves(int index)
 {
-    std::bitset<64> moves = 0ULL;
+    U64 moves = 0ULL;
 
     // Up
     for (int i = index + NORTH; i >= 0; i += NORTH)
-        moves.set(i);
+        moves |= 1ULL << i;
 
     // Down
     for (int i = index + SOUTH; i < 64; i += SOUTH)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     // Right
     for (int i = index + WEST; i % 8 != 0; i += WEST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     // Left
     for (int i = index + EAST; i % 8 != 7 && i >= 0; i += EAST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     return moves;
 }
 
 
 
-constexpr std::bitset<64> get_bishop_moves(int index)
+constexpr U64 get_bishop_moves(int index)
 {
-    std::bitset<64> moves = 0ULL;
+    U64 moves = 0ULL;
 
     // Down-right
     for (int i = index + SOUTH_EAST; i < 64 && (i % 8 != 0); i += SOUTH_EAST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     // Down-left
     for (int i = index + SOUTH_WEST; i < 64 && (i % 8 != 7); i += SOUTH_WEST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     // Up-right
     for (int i = index + NORTH_EAST; i >= 0 && (i % 8 != 0); i += NORTH_EAST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     // Up-left
     for (int i = index + NORTH_WEST; i >= 0 && (i % 8 != 7); i += NORTH_WEST)
-        moves.set(i);
+        moves |= 1ULL << i;
+
 
     return moves;
 }
 
 
 
-constexpr std::bitset<64> get_king_moves(int index)
+constexpr U64 get_king_moves(int index)
 {
-    std::bitset<64> moves = 0ULL;
+    U64 moves = 0ULL;
     const int directions[8] = {NORTH, SOUTH, EAST, WEST, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST};
 
     for (int dir : directions)
@@ -145,9 +154,9 @@ constexpr std::bitset<64> get_king_moves(int index)
 }
 
 
-constexpr std::bitset<64> get_knight_moves(int index)
+constexpr U64 get_knight_moves(int index)
 {
-    std::bitset<64> moves = 0ULL;
+    U64 moves = 0ULL;
     const int offsets[8] = {17, 15, 10, 6, -17, -15, -10, -6};
 
     for (int off : offsets)
@@ -165,15 +174,15 @@ constexpr std::bitset<64> get_knight_moves(int index)
 }
 
 
-constexpr std::bitset<64> get_queen_moves(int index)
+constexpr U64 get_queen_moves(int index)
 {
     return get_rook_moves(index) | get_bishop_moves(index);
 }
 
 
-constexpr std::bitset<64> get_pawn_moves(int index, bool isWhite = true)
+constexpr U64 get_pawn_moves(int index, bool isWhite = true)
 {
-    std::bitset<64> moves = 0ULL;
+    U64 moves = 0ULL;
     int dir = isWhite ? NORTH : SOUTH;
     int startRank = isWhite ? 1 : 6;
     int rank = index / 8;
@@ -210,20 +219,63 @@ constexpr PrecomputedMoveTables createAllMoves(){
     return bitMaskMoves;
 }
 
-void getAllMoves(PrecomputedMoveTables m, BoardState P, colour){
-    MoveBitboards {};
+int pop_highest_bit(U64 &x) {
+    if (x == 0) return 0;
+    int pos = 63 - __builtin_clzll(x); // 63 since its index by 1 insted of 0
+    x ^= (1u << pos);
+    return pos;
+}
+
+
+void get_all_moves(PrecomputedMoveTables m, BoardState P, int colour){
+    MoveBitboards workingState{};
+    auto& W{workingState};
+
+    MoveBitboards allPossibleMoves{};
+    auto& moves{allPossibleMoves};
+    enum colours{white,black};
+
+    int iii{};
+    if (colour == white){
+        W.attackingPawns = P.whitePawns;
+        W.queen = P.whiteQueen;
+        W.bishops = P.whiteBishops;
+        W.knights = P.whiteKnights;
+        W.rooks = P.whiteRooks;
+        W.pawns = P.whitePawns;
+
+        while (W.queen){
+            int iii = pop_highest_bit(W.queen);
+            moves.queen |= (m.queenMoves[iii] & ~P.whitePieces); // doesent deal with oppsite side pieces
+        };
+    }
+    else if (colour == black)
+    {
+        W.attackingPawns = P.blackPawns;
+        W.queen = P.blackQueen;
+        W.bishops = P.blackBishops;
+        W.knights = P.blackKnights;
+        W.rooks = P.blackRooks;
+        W.pawns = P.blackPawns;
+    }
+    else{
+        std::cout << "invalid colour";
+    };
+
+
+    
 
 
 }
 
 int main()
 {
-    int colour{2}; // probaly could make it 1 bit but not much of a improvement in efficency
+    int colour{0}; // probaly could make it 1 bit but not much of a improvement in efficency
     BoardState P{};
     get_fen(P);
     constexpr PrecomputedMoveTables bitMaskMoves{createAllMoves()};
 
-    getAllMoves(bitMaskMoves, P,colour);
+    get_all_moves(bitMaskMoves, P, colour);
     return 0;
 };
 
