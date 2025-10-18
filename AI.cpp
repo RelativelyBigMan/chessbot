@@ -569,7 +569,9 @@ std::vector<Piece> make_move(const std::vector<Piece>& allPieces, const Move& mo
 
 //     return best_move
 
-//modelled after this function ^^^^
+
+
+
 int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
     if (depth == 0){
         return eval(allPieces,colour);
@@ -586,7 +588,6 @@ int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
 
     int bestEval = colour ? -999999 : 999999;
     for (Move move: allPossibleMoves){
-        // std::vector<Piece> Board = make_move(allPieces, move);
         auto newAllPieces = make_move(allPieces, move);
         int evalValue = minimax(depth - 1, !colour, newAllPieces);
 
@@ -600,6 +601,49 @@ int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
 
 };
 
+struct MinimaxRes{
+    int eval;
+    Move bestMove;
+};
+
+// does minimax recursion on all moves after the intital moves so that it dosent need to return MinimaxRes struct on every return
+MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allPieces){
+    allMoves M{};
+    get_all_moves(allPieces, M, colour);
+    std::vector<Move> allPossibleMoves{};
+
+    allPossibleMoves.insert(allPossibleMoves.end(), M.pawn.begin(), M.pawn.end());
+    allPossibleMoves.insert(allPossibleMoves.end(), M.queen.begin(), M.queen.end());
+    allPossibleMoves.insert(allPossibleMoves.end(), M.bishop.begin(), M.bishop.end());
+    allPossibleMoves.insert(allPossibleMoves.end(), M.king.begin(), M.king.end());
+    allPossibleMoves.insert(allPossibleMoves.end(), M.knight.begin(), M.knight.end());
+    allPossibleMoves.insert(allPossibleMoves.end(), M.rook.begin(), M.rook.end());
+
+    int bestEval = colour ? -999999 : 999999;
+    Move bestMove;
+    for (Move move: allPossibleMoves){
+        auto newAllPieces = make_move(allPieces, move);
+        int evalValue = minimax(depth - 1, !colour, newAllPieces);
+
+        if (colour) {
+            if (evalValue > bestEval) {
+                bestEval = evalValue;
+                bestMove = move;
+            }
+        } else {
+            if (evalValue < bestEval) {
+                bestEval = evalValue;
+                bestMove = move;
+            }
+        }
+    }
+    return {bestEval,bestMove};
+
+};
+
+
+
+
 
 
 int main()
@@ -607,5 +651,5 @@ int main()
     std::string aFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b"};
     std::vector<Piece> allPieces(64);
     bool colour{setFEN(aFEN, allPieces)};
-    std::cout << minimax(4,colour,allPieces);
+    std::cout << find_best_move(4,colour,allPieces).bestMove.from;
 };
