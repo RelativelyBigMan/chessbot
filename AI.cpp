@@ -211,9 +211,7 @@ void get_moves_rook(int index, const std::vector<Piece>& allPieces, allMoves& M)
     }
 };
 
-int inline min(int a, int b) {
-    return (a < b) ? a : b;
-}
+
 
 //seems somewhat buggy might change to the same implementation as my python
 void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& M) {
@@ -225,10 +223,10 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
     int movesToWest{index % 8};
 
 
-    int movesToNE{min(movesToNorth,movesToEast)};
-    int movesToES{min(movesToEast,movesToSouth)};
-    int movesToSW{min(movesToSouth,movesToWest)};
-    int movesToWN{min(movesToWest,movesToNorth)};
+    int movesToNE{std::min(movesToNorth,movesToEast)};
+    int movesToES{std::min(movesToEast,movesToSouth)};
+    int movesToSW{std::min(movesToSouth,movesToWest)};
+    int movesToWN{std::min(movesToWest,movesToNorth)};
 
 
     int i{0};
@@ -351,10 +349,10 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
     int movesToWest{index % 8};
 
 
-    int movesToNE{min(movesToNorth,movesToEast)};
-    int movesToES{min(movesToEast,movesToSouth)};
-    int movesToSW{min(movesToSouth,movesToWest)};
-    int movesToWN{min(movesToWest,movesToNorth)};
+    int movesToNE{std::min(movesToNorth,movesToEast)};
+    int movesToES{std::min(movesToEast,movesToSouth)};
+    int movesToSW{std::min(movesToSouth,movesToWest)};
+    int movesToWN{std::min(movesToWest,movesToNorth)};
 
     int i{0};
     for (int iii{1}; iii <= movesToNE; ++iii) {
@@ -644,12 +642,14 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
 
 
 
+// https://www.geeksforgeeks.org/cpp/command-line-arguments-in-cpp/
 
-
-int main()
+int main(int argc, char* argv[])
 {
-    std::string aFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b"};
+    std::string aFEN{argv[1]};
+    // std::string aFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b"};
     std::vector<Piece> allPieces(64);
     bool colour{setFEN(aFEN, allPieces)};
-    std::cout << find_best_move(4,colour,allPieces).bestMove.from;
+    MinimaxRes res {find_best_move(4,colour,allPieces)};
+    std::cout << res.bestMove.from << " " << res.bestMove.to << "\n";
 };
