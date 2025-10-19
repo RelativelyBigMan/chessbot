@@ -100,27 +100,32 @@ bool inBounds(int x) {
 // could pass by refernence but compiler is smart enough to know to use pass by refernce
 // returns true for WHITE to move, false for BLACK to move
 
-bool setFEN(std::string_view aFEN, std::vector<Piece>& allPieces)
+bool setFEN(std::string_view aFEN, std::vector<Piece>& allPieces, uint64_t binStr)
 {
     size_t j{0};
     int square_index{0};
     size_t pos = aFEN.find(" ");
-
+    bool firstMove{false};
     while (j < pos){
+        if (binStr & (1ULL << j)) {
+            firstMove = true;
+        } else {
+            firstMove = false;
+        }
         switch (aFEN.at(j))
             {
-                case 'p': allPieces[square_index] = Piece{PAWN,BLACK,true};  square_index++; break;
-                case 'r': allPieces[square_index] = Piece{ROOK,BLACK,true};  square_index++; break;
-                case 'n': allPieces[square_index] = Piece{KNIGHT,BLACK,true};square_index++; break;
-                case 'b': allPieces[square_index] = Piece{BISHOP,BLACK,true};square_index++; break;
-                case 'q': allPieces[square_index] = Piece{QUEEN,BLACK,true}; square_index++; break;
-                case 'k': allPieces[square_index] = Piece{KING,BLACK,true};  square_index++; break;
-                case 'P': allPieces[square_index] = Piece{PAWN,WHITE,true};  square_index++; break;
-                case 'R': allPieces[square_index] = Piece{ROOK,WHITE,true};  square_index++; break;
-                case 'N': allPieces[square_index] = Piece{KNIGHT,WHITE,true};square_index++; break;
-                case 'B': allPieces[square_index] = Piece{BISHOP,WHITE,true};square_index++; break;
-                case 'Q': allPieces[square_index] = Piece{QUEEN,WHITE,true}; square_index++; break;
-                case 'K': allPieces[square_index] = Piece{KING,WHITE,true};  square_index++; break;
+                case 'p': allPieces[square_index] = Piece{PAWN,BLACK,firstMove};  square_index++; break;
+                case 'r': allPieces[square_index] = Piece{ROOK,BLACK,firstMove};  square_index++; break;
+                case 'n': allPieces[square_index] = Piece{KNIGHT,BLACK,firstMove};square_index++; break;
+                case 'b': allPieces[square_index] = Piece{BISHOP,BLACK,firstMove};square_index++; break;
+                case 'q': allPieces[square_index] = Piece{QUEEN,BLACK,firstMove}; square_index++; break;
+                case 'k': allPieces[square_index] = Piece{KING,BLACK,firstMove};  square_index++; break;
+                case 'P': allPieces[square_index] = Piece{PAWN,WHITE,firstMove};  square_index++; break;
+                case 'R': allPieces[square_index] = Piece{ROOK,WHITE,firstMove};  square_index++; break;
+                case 'N': allPieces[square_index] = Piece{KNIGHT,WHITE,firstMove};square_index++; break;
+                case 'B': allPieces[square_index] = Piece{BISHOP,WHITE,firstMove};square_index++; break;
+                case 'Q': allPieces[square_index] = Piece{QUEEN,WHITE,firstMove}; square_index++; break;
+                case 'K': allPieces[square_index] = Piece{KING,WHITE,firstMove};  square_index++; break;
                 case '/':                                                      break;
                 case '1': square_index += 1;                                   break;
                 case '2': square_index += 2;                                   break;
@@ -506,9 +511,9 @@ int eval(const std::vector<Piece>& allPieces,bool colour){
             continue;
         }
         switch(cur.type){
-            case PAWN:   value = 100; break;
-            case KNIGHT: value = 320; break;
-            case BISHOP: value = 330; break;
+            case PAWN:   value = 300; break;
+            case KNIGHT: value = 300; break;
+            case BISHOP: value = 300; break;
             case ROOK:   value = 500; break;
             case QUEEN:  value = 900; break;
             case KING:   value = 20000; break;
@@ -628,41 +633,7 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
 };
 
 
-// remove: for testing
-// char piece_to_letter(const Piece& p) {
-//     if (p.type == NOPIECE) return '.';
-    
-//     char letter;
-//     switch(p.type) {
-//         case PAWN:   letter = 'p'; break;
-//         case KNIGHT: letter = 'n'; break;
-//         case BISHOP: letter = 'b'; break;
-//         case ROOK:   letter = 'r'; break;
-//         case QUEEN:  letter = 'q'; break;
-//         case KING:   letter = 'k'; break;
-//         default:     letter = '.'; break;
-//     }
-    
-//     return p.Colour == WHITE ? toupper(letter) : letter;
-// }
 
-// // remove: for testing
-// std::ostream& operator<<(std::ostream& os, const std::vector<Piece>& allPieces) {
-//     os << "   1  2  3  4  5  6  7  8   X\n";
-    
-//     for (int row = 0; row < 8; ++row) {
-//         os << (row + 1) << " [";
-//         for (int col = 0; col < 8; ++col) {
-//             int index = row * 8 + col;
-//             os << piece_to_letter(allPieces[index]);
-//             if (col < 7) os << ", ";
-//         }
-//         os << "]\n";
-//     }
-//     os << "\nY\n";
-    
-//     return os;
-// }
 
 
 // https://www.geeksforgeeks.org/cpp/command-line-arguments-in-cpp/
@@ -670,10 +641,11 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
 int main(int argc, char* argv[])
 {
     std::string aFEN{argv[1]};
-    // std::string aFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b"};
+    uint64_t bin_str{std::stoull(argv[2])};
+
+
     std::vector<Piece> allPieces(64);
-    bool colour{setFEN(aFEN, allPieces)};
-    // std::cerr << "C++ sees this board:\n" << allPieces << std::endl;
+    bool colour{setFEN(aFEN, allPieces, bin_str)};
     MinimaxRes res {find_best_move(4,colour,allPieces)};
     std::cout << res.bestMove.from << " " << res.bestMove.to << "\n";
 };

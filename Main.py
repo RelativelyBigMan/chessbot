@@ -5,11 +5,30 @@ import subprocess
 import os
 import random
 import time
+import functools
+seed = random.randint(0,99999999)
+# seed = 90061043
+random.seed(seed)
+# 90061043
+# 50586168
+# 17152963
+# 25707880
+
+
+# need to add logic for stalemate
+
+AITurn = False
 colourTurn = True # True is white, black is False
 state = None
 isCheck = False
-
-
+prevMoves = [(0,0,0,0)] * 10
+def trackcalls(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.has_been_called = True
+        return func(*args, **kwargs)
+    wrapper.has_been_called = False
+    return wrapper
 
 def piece_to_letter(Type,Colour):
     if not(Type and Colour):
@@ -48,6 +67,18 @@ def create_board():
     state[6] = [Piece(Type, "Black",True) for Type in pawns]
     state[7] = [Piece(Type, "Black",True) for Type in pieces]
     return state
+
+
+
+def get_first_move(state):
+    bin_str = ""
+    for yyy in range(8):
+        for xxx in range(8):
+            if state[yyy][xxx].FirstMove == True:
+                bin_str += "1"
+            else:
+                bin_str += "0"
+    return str(int(bin_str,2))
 
 def get_input():
     print("Example input: '1 2' These are x and y respectively:")
@@ -93,13 +124,87 @@ def board_to_fen(state,colourTurn):
     return string
 
 
+def get_random_move(colourTurn,state):
+    all_moves = []
+
+    if colourTurn:
+        curColour = "White"
+    else:
+        curColour = "Black"
+    for yyy in range(8):
+        for xxx in range(8):
+            piece = state[yyy][xxx]
+            if piece.Colour == None:
+                continue
+            typePiece,Colour = piece.Type, piece.Colour
+
+            if Colour == curColour:
+                match typePiece:
+                    case None:
+                        continue
+                    case "rook":
+                        moves = (M.get_moves_rook(xxx,yyy,state))
+                    case "knight":
+                        moves = (M.get_moves_knight(xxx,yyy,state))
+                    case "bishop":
+                        moves = (M.get_moves_bishop(xxx,yyy,state))
+                    case "queen":
+                        moves = (M.get_moves_queen(xxx,yyy,state))
+                    case "king":
+                        moves = (M.get_moves_king(xxx,yyy,state))
+                    case "pawn":
+                        moves = (M.get_moves_pawn(xxx,yyy,state))
+
+                for move in moves:
+                    all_moves.append((xxx,yyy,move[0], move[1]))
+    return all_moves
+
+# Not exactly exhaustive search but oh well
+def check_insuffiececnt_pieces(state):
+    for yyy in range(8):
+        for xxx in range(8):
+            cur = state[yyy][xxx]
+            if cur.Type not in ["pawn", "bishop", "king", None]:
+                return False
+    return True
+
+def get_unchecked(state,colourTurn):
+    colour = "Black"
+    if colourTurn:
+        colour = "White"
+    for xxx in range(8):
+        for yyy in range(8):
+            if state[yyy][xxx].Type == "king" and state[yyy][xxx] == colour:
+                move = random.choice(M.get_moves_king(xxx,yyy,state))
+                return (xxx,yyy,move[0],move[1])
+
+
+
+    
+
+# https://stackoverflow.com/questions/9882280/find-out-if-a-function-has-been-called/9882439#9882439
 # https://stackoverflow.com/questions/41171791/how-to-suppress-or-capture-the-output-of-subprocess-run
-def get_AI_move(state,colourTurn):
+@trackcalls
+def get_AI_move(state,colourTurn,prevMoves, isCheck):
 
     if "chess_engine" not in os.listdir():
         subprocess.run(["g++", "-O2", "-std=c++20", "AI.cpp", "-o", "chess_engine"])
         print("Compiled C++ program")
-    pieceFrom, pieceTo = subprocess.run(["./chess_engine", board_to_fen(state,colourTurn)], capture_output = True, text=True).stdout.split(" ")
+    if isCheck:
+        move = (get_unchecked(state,colourTurn))
+
+
+
+    if not get_AI_move.has_been_called:
+        allMoves = get_random_move(colourTurn,state)
+        return random.choice(allMoves)
+    for move in prevMoves:
+        if move in prevMoves:
+            allMoves = get_random_move(colourTurn,state)
+            return random.choice(allMoves)
+
+    board_to_fen(state,colourTurn)
+    pieceFrom, pieceTo = subprocess.run(["./chess_engine", board_to_fen(state,colourTurn), get_first_move(state)], capture_output = True, text=True).stdout.split(" ")
     pieceFrom, pieceTo = int(pieceFrom), int(pieceTo)
 
     return (pieceFrom%8, pieceFrom//8, pieceTo%8, pieceTo//8)
@@ -108,9 +213,9 @@ def get_AI_move(state,colourTurn):
 if __name__=="__main__":
     state = create_board()
     print("IMPORTANT: White pieces are uppercase, black pieces are lowercase")
-    mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
-    AITurn = False
-    print(board_to_fen(state,colourTurn))
+    # mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
+    mode = 3
+
 
     if mode == 1:
         U1Name = input("User 1, input your name: ")
@@ -143,7 +248,7 @@ if __name__=="__main__":
             if not(colourTurn == AITurn):
                 print_row(state)
             if colourTurn == AITurn:
-                userInput = get_AI_move(state,colourTurn)
+                userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
             else:
                 userInput = get_input()
 
@@ -154,7 +259,8 @@ if __name__=="__main__":
                 trg = state[y2][x2]
                 state[y2][x2] = org
                 state[y1][x1] = Piece(None,None,None)
-
+                prevMoves.append((x1,y1,x2,y2))
+                
                 if isCheck and K.get_check(colourTurn,state):
                     print("ERROR: king in check")
                     state[y1][x1] = org
@@ -172,6 +278,10 @@ if __name__=="__main__":
                     else:
                         print("Opponent is in check")
 
+                if check_insuffiececnt_pieces(state):
+                    print("Not enough pieces to continue :( ")
+                    sys.exit("\n")
+                
                 colourTurn = not(colourTurn) # switches the colour Turn
 
 
@@ -231,6 +341,9 @@ if __name__=="__main__":
                     else:
                         print("Opponent is in check")
 
+                if check_insuffiececnt_pieces(state):
+                    print("Not enough pieces to continue :( ")
+                    sys.exit("\n")
                 colourTurn = not(colourTurn) # switches the colour Turn
 
     if mode == 3:
@@ -253,16 +366,14 @@ if __name__=="__main__":
 
 
         while True:
-            print(board_to_fen(state,colourTurn))
             if colourTurn == True:
                 print(f"It is white's ({U1Name}) move\n")
             else:
                 print(f"It is black's ({U2Name}) move\n")
 
-            if isCheck == True:
-                print("Check has been instaniated, either move the king or move a piece into the way\n")
             print_row(state)
-            userInput = get_AI_move(state,colourTurn)
+            
+            userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
             print(userInput)
             if M.check_valid(userInput,colourTurn,state):
                 x1,y1,x2,y2 = userInput
@@ -270,26 +381,34 @@ if __name__=="__main__":
                 trg = state[y2][x2]
                 state[y2][x2] = org
                 state[y1][x1] = Piece(None,None,None)
-
-                if isCheck and K.get_check(colourTurn,state):
-                    print("ERROR: king in check")
-                    state[y1][x1] = org
-                    state[y2][x2] = trg
-                    continue
+                prevMoves.append((x1,y1,x2,y2))
+                
 
                 if state[y2][x2]:
                     state[y2][x2].FirstMove = False
+                
 
+                if K.get_check(colourTurn,state):
+                    print("ERROR: king in check")
+                    state[y1][x1] = org
+                    state[y2][x2] = trg
+                    prevMoves.pop(0)
+                    continue
+                
+                colourTurn = not(colourTurn)
+                
                 if K.get_check(colourTurn, state):
-                    isCheck = True
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
+                        print(seed)
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
-
-                colourTurn = not(colourTurn) # switches the colour Turn
-            time.sleep(1)
+                
+                if check_insuffiececnt_pieces(state):
+                    print("Not enough pieces to continue :( ")
+                    sys.exit("\n")
+                
 
 
 
