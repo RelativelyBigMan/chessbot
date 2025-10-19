@@ -6,9 +6,10 @@ import os
 import random
 import time
 import functools
-seed = random.randint(0,99999999)
-# seed = 90061043
-random.seed(seed)
+import json
+from statistics import mean
+
+
 
 # 90061043
 # 50586168
@@ -16,13 +17,16 @@ random.seed(seed)
 # 25707880
 # 43176964
 
-# need to add logic for stalemate
-
+seed = random.randint(0,99999999)
+random.seed(seed)
 AITurn = False
 colourTurn = True # True is white, black is False
 state = None
 isCheck = False
 prevMoves = [(0,0,0,0)] * 10
+timesUser1 = []
+timesUser2 = []
+
 def trackcalls(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -95,7 +99,7 @@ def get_input():
         except (ValueError, IndexError):
             print("Invalid input, go again")
 
-# RBQKBNR1/PPPPPPPP/N7/8/8/8/pppppppp/rnbqkbnr b
+
 # maybe the bug is with the c++?
 def board_to_fen(state,colourTurn):
     mat = []
@@ -187,6 +191,23 @@ def get_unchecked(state,colourTurn):
 #             return False
 #     return True
     
+# https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file
+def save_data(data, filename="chess_games.json"):
+    try:
+        with open(filename, "r") as file:
+            allPrevGames = json.load(file)
+    except FileNotFoundError:
+        allPrevGames = []
+    
+    allPrevGames.append(data)
+
+    with open(filename, "w", encoding='utf-8') as file:
+        json.dump(allPrevGames, file, indent=2) 
+
+    
+
+
+
 
 # https://stackoverflow.com/questions/9882280/find-out-if-a-function-has-been-called/9882439#9882439
 # https://stackoverflow.com/questions/41171791/how-to-suppress-or-capture-the-output-of-subprocess-run
@@ -253,15 +274,30 @@ if __name__=="__main__":
 
             if check_insuffiececnt_pieces(state):
                 print("Not enough pieces to continue :( ")
+                data = {
+                    "seed": seed,
+                    "mode": mode,
+                    "winner": "White" if not colourTurn else "Black",
+                    "ending": "Checkmate",
+                    "time": int(time.time()),
+                    "final_pos": board_to_fen(state, colourTurn),
+                    "avg_time_for_User1": mean(timesUser1),
+                    "avg_time_for_User2": mean(timesUser2)
+                    }
+                save_data(data)
                 sys.exit("\n")
 
             if not(colourTurn == AITurn):
                 print_row(state)
 
+            initialTime = time.time()
+            userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
+            timeTook = time.time() - initialTime
             if colourTurn == AITurn:
-                userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
+                timesUser1.append(timeTook)
             else:
-                userInput = get_input()
+                timesUser2.append(timeTook)
+
 
             if M.check_valid(userInput,colourTurn,state):
 
@@ -286,6 +322,17 @@ if __name__=="__main__":
                 if K.get_check(colourTurn, state):
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
+                        data = {
+                            "seed": seed,
+                            "mode": mode,
+                            "winner": "White" if not colourTurn else "Black",
+                            "ending": "Checkmate",
+                            "time": int(time.time()),
+                            "final_pos": board_to_fen(state, colourTurn),
+                            "avg_time_for_User1": mean(timesUser1),
+                            "avg_time_for_User2": mean(timesUser2)
+                        }
+                        save_data(data)
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
@@ -327,10 +374,28 @@ if __name__=="__main__":
 
             if check_insuffiececnt_pieces(state):
                 print("Not enough pieces to continue :( ")
+                data = {
+                    "seed": seed,
+                    "mode": mode,
+                    "winner": "White" if not colourTurn else "Black",
+                    "ending": "Checkmate",
+                    "time": int(time.time()),
+                    "final_pos": board_to_fen(state, colourTurn),
+                    "avg_time_for_User1": mean(timesUser1),
+                    "avg_time_for_User2": mean(timesUser2)
+                    }
+                save_data(data)
                 sys.exit("\n")
 
             print_row(state)
-            userInput = get_input()
+            initialTime = time.time()
+            userInput = userInput = get_input()
+            timeTook = time.time() - initialTime
+            if colourTurn == True:
+                timesUser1.append(timeTook)
+            else:
+                timesUser2.append(timeTook)
+
 
             if M.check_valid(userInput,colourTurn,state):
                 x1,y1,x2,y2 = userInput
@@ -353,6 +418,17 @@ if __name__=="__main__":
                 if K.get_check(colourTurn, state):
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
+                        data = {
+                            "seed": seed,
+                            "mode": mode,
+                            "winner": "White" if not colourTurn else "Black",
+                            "ending": "Checkmate",
+                            "time": int(time.time()),
+                            "final_pos": board_to_fen(state, colourTurn),
+                            "avg_time_for_User1": mean(timesUser1),
+                            "avg_time_for_User2": mean(timesUser2)
+                        }
+                        save_data(data)
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
@@ -392,9 +468,27 @@ if __name__=="__main__":
             
             if check_insuffiececnt_pieces(state):
                 print("Not enough pieces to continue :( ")
+                data = {
+                    "seed": seed,
+                    "mode": mode,
+                    "winner": "White" if not colourTurn else "Black",
+                    "ending": "Checkmate",
+                    "time": int(time.time()),
+                    "final_pos": board_to_fen(state, colourTurn),
+                    "avg_time_for_User1": mean(timesUser1),
+                    "avg_time_for_User2": mean(timesUser2),
+                }
+                save_data(data)
                 sys.exit("\n")
+
+            initialTime = time.time()
             userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
-            print(userInput)
+            timeTook  = time.time() - initialTime
+            if colourTurn == True:
+                timesUser2.append(timeTook)
+            else:
+                timesUser1.append(timeTook)
+            
             if M.check_valid(userInput,colourTurn,state):
                 x1,y1,x2,y2 = userInput
                 org = state[y1][x1]
@@ -420,12 +514,22 @@ if __name__=="__main__":
                 if K.get_check(colourTurn, state):
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
-                        print(seed)
                         sys.exit("\n")
+                        data = {
+                            "seed": seed,
+                            "mode": mode,
+                            "winner": "White" if not colourTurn else "Black",
+                            "ending": "Checkmate",
+                            "time": int(time.time()),
+                            "final_pos": board_to_fen(state, colourTurn),
+                            "avg_time_for_User1": mean(timesUser1),
+                            "avg_time_for_User2": mean(timesUser2),
+                        }
+                        save_data(data)
                     else:
                         print("Opponent is in check")
                     
-                
+
 
 
                 # if check_stalemate(state,colourTurn):
