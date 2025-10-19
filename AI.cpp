@@ -98,15 +98,15 @@ bool inBounds(int x) {
 
 // switch statement taken from somewhere, not much to steal though because it was using 
 // could pass by refernence but compiler is smart enough to know to use pass by refernce
+// returns true for WHITE to move, false for BLACK to move
+
 bool setFEN(std::string_view aFEN, std::vector<Piece>& allPieces)
 {
     size_t j{0};
     int square_index{0};
-    bool stop{false};
-    while (j < aFEN.length()){
-        if (stop == true){
-            break;
-        }
+    size_t pos = aFEN.find(" ");
+
+    while (j < pos){
         switch (aFEN.at(j))
             {
                 case 'p': allPieces[square_index] = Piece{PAWN,BLACK,true};  square_index++; break;
@@ -122,24 +122,27 @@ bool setFEN(std::string_view aFEN, std::vector<Piece>& allPieces)
                 case 'Q': allPieces[square_index] = Piece{QUEEN,WHITE,true}; square_index++; break;
                 case 'K': allPieces[square_index] = Piece{KING,WHITE,true};  square_index++; break;
                 case '/':                                                      break;
-                case '1':                                                      break;
-                case '2': square_index++;                                      break;
-                case '3': square_index += 2;                                   break;
-                case '4': square_index += 3;                                   break;
-                case '5': square_index += 4;                                   break;
-                case '6': square_index += 5;                                   break;
-                case '7': square_index += 6;                                   break;
-                case '8': square_index += 7;                                   break;
-                case ' ': stop = true;                                         break;
+                case '1': square_index += 1;                                   break;
+                case '2': square_index += 2;                                   break;
+                case '3': square_index += 3;                                   break;
+                case '4': square_index += 4;                                   break;
+                case '5': square_index += 5;                                   break;
+                case '6': square_index += 6;                                   break;
+                case '7': square_index += 7;                                   break;
+                case '8': square_index += 8;                                   break;
+                default:                                                       break;
                 
             }
         ++j;
     }
-    if (aFEN.at(j) == 'w'){
-        return false;
-    } else{
-        return true;
+    if (pos < aFEN.length()){
+        char side{aFEN[pos+1]};
+        if (side == 'b'){
+            return true;
+        }
     }
+
+    return false;
 }
 
 // https://www.learncpp.com/cpp-tutorial/introduction-to-overloading-the-i-o-operators/
@@ -465,7 +468,7 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
 
 void get_pawn_moves(int index, const std::vector<Piece>& allPieces, allMoves& M){
     Piece org{allPieces[index]};
-    int direction{(org.Colour == WHITE) ? NORTH : SOUTH};
+    int direction{(org.Colour == WHITE) ? SOUTH : NORTH};
     // uses int instead of Piece directly because of out of bounds issues
     int forward1{index + direction};
     int forward2{index + 2*direction};
@@ -528,7 +531,6 @@ void get_all_moves(const std::vector<Piece>& allPieces, allMoves& M, bool colour
                 case(KNIGHT): get_knight_moves(i,allPieces,M); break;
             }
         }
-        
     }
 };
 
@@ -547,25 +549,7 @@ std::vector<Piece> make_move(const std::vector<Piece>& allPieces, const Move& mo
 
 
 
-// def min_max2(BOARD):
-//     moves = list(BOARD.legal_moves)
-//     scores = []
 
-//     for move in moves:
-//         temp = deepcopy(BOARD)
-//         temp.push(move)
-//         temp_best_move = most_value_agent(temp)
-//         temp.push(temp_best_move)
-//         scores.append(eval_board(temp))
-
-//     if BOARD.turn == True:
-        
-//         best_move = moves[scores.index(max(scores))]
-
-//     else:
-//         best_move = moves[scores.index(min(scores))]
-
-//     return best_move
 
 
 
@@ -574,6 +558,7 @@ int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
     if (depth == 0){
         return eval(allPieces,colour);
     }
+
     allMoves M{};
     get_all_moves(allPieces, M, colour);
     std::vector<Move> allPossibleMoves{};
@@ -584,6 +569,9 @@ int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
     allPossibleMoves.insert(allPossibleMoves.end(), M.knight.begin(), M.knight.end());
     allPossibleMoves.insert(allPossibleMoves.end(), M.rook.begin(), M.rook.end());
 
+    if (allPossibleMoves.empty()) {
+    return eval(allPieces, colour);  // or handle checkmate/stalemate
+    }
     int bestEval = colour ? -999999 : 999999;
     for (Move move: allPossibleMoves){
         auto newAllPieces = make_move(allPieces, move);
@@ -609,7 +597,7 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
     allMoves M{};
     get_all_moves(allPieces, M, colour);
     std::vector<Move> allPossibleMoves{};
-
+    // std::cout << M.pawn;
     allPossibleMoves.insert(allPossibleMoves.end(), M.pawn.begin(), M.pawn.end());
     allPossibleMoves.insert(allPossibleMoves.end(), M.queen.begin(), M.queen.end());
     allPossibleMoves.insert(allPossibleMoves.end(), M.bishop.begin(), M.bishop.end());
@@ -640,6 +628,41 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
 };
 
 
+// remove: for testing
+// char piece_to_letter(const Piece& p) {
+//     if (p.type == NOPIECE) return '.';
+    
+//     char letter;
+//     switch(p.type) {
+//         case PAWN:   letter = 'p'; break;
+//         case KNIGHT: letter = 'n'; break;
+//         case BISHOP: letter = 'b'; break;
+//         case ROOK:   letter = 'r'; break;
+//         case QUEEN:  letter = 'q'; break;
+//         case KING:   letter = 'k'; break;
+//         default:     letter = '.'; break;
+//     }
+    
+//     return p.Colour == WHITE ? toupper(letter) : letter;
+// }
+
+// // remove: for testing
+// std::ostream& operator<<(std::ostream& os, const std::vector<Piece>& allPieces) {
+//     os << "   1  2  3  4  5  6  7  8   X\n";
+    
+//     for (int row = 0; row < 8; ++row) {
+//         os << (row + 1) << " [";
+//         for (int col = 0; col < 8; ++col) {
+//             int index = row * 8 + col;
+//             os << piece_to_letter(allPieces[index]);
+//             if (col < 7) os << ", ";
+//         }
+//         os << "]\n";
+//     }
+//     os << "\nY\n";
+    
+//     return os;
+// }
 
 
 // https://www.geeksforgeeks.org/cpp/command-line-arguments-in-cpp/
@@ -650,6 +673,7 @@ int main(int argc, char* argv[])
     // std::string aFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b"};
     std::vector<Piece> allPieces(64);
     bool colour{setFEN(aFEN, allPieces)};
+    // std::cerr << "C++ sees this board:\n" << allPieces << std::endl;
     MinimaxRes res {find_best_move(4,colour,allPieces)};
     std::cout << res.bestMove.from << " " << res.bestMove.to << "\n";
 };

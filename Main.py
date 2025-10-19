@@ -3,8 +3,8 @@ import King_Safety as K
 import sys
 import subprocess
 import os
-
-
+import random
+import time
 colourTurn = True # True is white, black is False
 state = None
 isCheck = False
@@ -50,7 +50,7 @@ def create_board():
     return state
 
 def get_input():
-    print("Example input: '1 2' These are x and y respectively")
+    print("Example input: '1 2' These are x and y respectively:")
     while True:
         try:
             x1,y1 = input("What would you like to move: ").split()
@@ -63,53 +63,30 @@ def get_input():
         except (ValueError, IndexError):
             print("Invalid input, go again")
 
-
+# RBQKBNR1/PPPPPPPP/N7/8/8/8/pppppppp/rnbqkbnr b
+# maybe the bug is with the c++?
 def board_to_fen(state,colourTurn):
-    string = ""
-    noneValue = Piece(None,None,None)
+    mat = []
     index = 0
     for yyy in range(8):
-        if index != 0:
-            string += str(index)  
-            index = 0
-        string += "/"
+        string = ""
         for xxx in range(8):
             cur = state[yyy][xxx]
             if cur.Type is not None:
+                if index != 0:
+                    string += str(index)  
+                    index = 0
+                string += piece_to_letter(cur.Type, cur.Colour)
 
-                if cur.Colour == "Black":
-
-                    match cur.Type:
-                        case "rook":
-                            string += "R"
-                        case "knight":
-                            string += "N"
-                        case "bishop":
-                            string += "B"
-                        case "queen":
-                            string += "Q"
-                        case "king":
-                            string += "K"
-                        case "pawn":
-                            string += "P"
-                else:
-                    match cur.Type:
-                        case "rook":
-                            string += "r"
-                        case "knight":
-                            string += "n"
-                        case "bishop":
-                            string += "b"
-                        case "queen":
-                            string += "q"
-                        case "king":
-                            string += "k"
-                        case "pawn":
-                            string += "p"
             else:
                 index += 1
 
-    if colourTurn == "White":
+        if index != 0:
+            string += str(index)  
+            index = 0
+        mat.append(string)
+    string = "/".join(mat)
+    if colourTurn == True:
         string += " w"
     else:
         string += " b"
@@ -123,52 +100,196 @@ def get_AI_move(state,colourTurn):
         subprocess.run(["g++", "-O2", "-std=c++20", "AI.cpp", "-o", "chess_engine"])
         print("Compiled C++ program")
     pieceFrom, pieceTo = subprocess.run(["./chess_engine", board_to_fen(state,colourTurn)], capture_output = True, text=True).stdout.split(" ")
-    print(pieceFrom,pieceTo)
     pieceFrom, pieceTo = int(pieceFrom), int(pieceTo)
 
-    indexFrom = (pieceFrom%8,pieceFrom//8)
-    indexTo = (pieceTo%8,pieceTo//8)
-    return indexFrom,indexTo
+    return (pieceFrom%8, pieceFrom//8, pieceTo%8, pieceTo//8)
+
 
 if __name__=="__main__":
     state = create_board()
-    while True:
-        if colourTurn == True:
-            print("It is white's move\n")
+    print("IMPORTANT: White pieces are uppercase, black pieces are lowercase")
+    mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
+    AITurn = False
+    print(board_to_fen(state,colourTurn))
+
+    if mode == 1:
+        U1Name = input("User 1, input your name: ")
+        U2Name = "AI"
+
+        randomNum = random.randint(0,100)
+        guessU1 = int(input(f"{U1Name}, pick a number between 0-100: "))
+        guessU2 = random.randint(0,100)
+        # gets the modulus of the differnce between the randomNum and the users guess
+        diffU1 = abs(randomNum - guessU1)
+        diffU2 = abs(randomNum - guessU2)
+
+        if min(diffU1,diffU2) == diffU1:
+            print(f"{U1Name}, you are white \n")
         else:
-            print("It is black's move\n")
+            print(f"{U2Name}, you are white \n")
+            temp = U2Name
+            U2Name = U1Name
+            U1Name = temp
+            AITurn = True
+        
+        while True:
+            if colourTurn == True and colourTurn != AITurn:
+                print(f"It is white's ({U1Name}) move\n")
+            elif colourTurn == False and colourTurn != AITurn:
+                print(f"It is black's ({U2Name})move\n")
 
-        if isCheck == True:
-            print("Check has been instaniated, either move the king or move a piece into the way\n")
-        print_row(state)
-        userInput = get_input()
+            if isCheck == True:
+                print("Check has been instaniated, either move the king or move a piece into the way\n")
+            if not(colourTurn == AITurn):
+                print_row(state)
+            if colourTurn == AITurn:
+                userInput = get_AI_move(state,colourTurn)
+            else:
+                userInput = get_input()
 
-        if M.check_valid(userInput,colourTurn,state):
+            if M.check_valid(userInput,colourTurn,state):
 
-            x1,y1,x2,y2 = userInput
-            org = state[y1][x1]
-            trg = state[y2][x2]
-            state[y2][x2] = org
-            state[y1][x1] = Piece(None,None,None)
+                x1,y1,x2,y2 = userInput
+                org = state[y1][x1]
+                trg = state[y2][x2]
+                state[y2][x2] = org
+                state[y1][x1] = Piece(None,None,None)
 
-            if isCheck and K.get_check(colourTurn,state):
-                print("ERROR: king in check")
-                state[y1][x1] = org
-                state[y2][x2] = trg
-                continue
+                if isCheck and K.get_check(colourTurn,state):
+                    print("ERROR: king in check")
+                    state[y1][x1] = org
+                    state[y2][x2] = trg
+                    continue
 
-            if state[y2][x2]:
-                state[y2][x2].FirstMove = False
+                if state[y2][x2]:
+                    state[y2][x2].FirstMove = False
 
-            if K.get_check(colourTurn, state):
-                isCheck = True
-                if K.get_checkmate(colourTurn, state):
-                    print("Checkmate")
-                    sys.exit("\n")
-                else:
-                    print("Opponent is in check")
+                if K.get_check(colourTurn, state):
+                    isCheck = True
+                    if K.get_checkmate(colourTurn, state):
+                        print("Checkmate")
+                        sys.exit("\n")
+                    else:
+                        print("Opponent is in check")
 
-            colourTurn = not(colourTurn) # switches the colour Turn
+                colourTurn = not(colourTurn) # switches the colour Turn
+
+
+    if mode == 2:
+        U1Name = input("User 1, input your name: ")
+        U2Name = input("User 2, input your name: ")
+
+        randomNum = random.randint(0,100)
+        guessU1 = int(input(f"{U1Name}, pick a number between 0-100: "))
+        guessU2 = int(input(f"{U2Name}, pick a number between 0-100: "))
+        # gets the modulus of the differnce between the randomNum and the users guess
+        diffU1 = abs(randomNum - guessU1)
+        diffU2 = abs(randomNum - guessU2)
+
+        if min(diffU1,diffU2) == diffU1:
+            print(f"{U1Name}, you are white")
+        else:
+            print(f"{U2Name}, you are white")
+            temp = U2Name
+            U2Name = U1Name
+            U1Name = temp
+
+
+        while True:
+            if colourTurn == True:
+                print(f"It is white's ({U1Name}) move\n")
+            else:
+                print(f"It is black's ({U2Name}) move\n")
+
+            if isCheck == True:
+                print("Check has been instaniated, either move the king or move a piece into the way\n")
+            print_row(state)
+            userInput = get_input()
+
+            if M.check_valid(userInput,colourTurn,state):
+
+                x1,y1,x2,y2 = userInput
+                org = state[y1][x1]
+                trg = state[y2][x2]
+                state[y2][x2] = org
+                state[y1][x1] = Piece(None,None,None)
+
+                if isCheck and K.get_check(colourTurn,state):
+                    print("ERROR: king in check")
+                    state[y1][x1] = org
+                    state[y2][x2] = trg
+                    continue
+
+                if state[y2][x2]:
+                    state[y2][x2].FirstMove = False
+
+                if K.get_check(colourTurn, state):
+                    isCheck = True
+                    if K.get_checkmate(colourTurn, state):
+                        print("Checkmate")
+                        sys.exit("\n")
+                    else:
+                        print("Opponent is in check")
+
+                colourTurn = not(colourTurn) # switches the colour Turn
+
+    if mode == 3:
+        U1Name = "AI 1"
+        U2Name = "AI 2"
+        randomNum = random.randint(0,100)
+        guessU1 = random.randint(0,100)
+        guessU2 = random.randint(0,100)
+        # gets the modulus of the differnce between the randomNum and the users guess
+        diffU1 = abs(randomNum - guessU1)
+        diffU2 = abs(randomNum - guessU2)
+
+        if min(diffU1,diffU2) == diffU1:
+            print(f"{U1Name}, you are white")
+        else:
+            print(f"{U2Name}, you are white")
+            temp = U2Name
+            U2Name = U1Name
+            U1Name = temp
+
+
+        while True:
+            print(board_to_fen(state,colourTurn))
+            if colourTurn == True:
+                print(f"It is white's ({U1Name}) move\n")
+            else:
+                print(f"It is black's ({U2Name}) move\n")
+
+            if isCheck == True:
+                print("Check has been instaniated, either move the king or move a piece into the way\n")
+            print_row(state)
+            userInput = get_AI_move(state,colourTurn)
+            print(userInput)
+            if M.check_valid(userInput,colourTurn,state):
+                x1,y1,x2,y2 = userInput
+                org = state[y1][x1]
+                trg = state[y2][x2]
+                state[y2][x2] = org
+                state[y1][x1] = Piece(None,None,None)
+
+                if isCheck and K.get_check(colourTurn,state):
+                    print("ERROR: king in check")
+                    state[y1][x1] = org
+                    state[y2][x2] = trg
+                    continue
+
+                if state[y2][x2]:
+                    state[y2][x2].FirstMove = False
+
+                if K.get_check(colourTurn, state):
+                    isCheck = True
+                    if K.get_checkmate(colourTurn, state):
+                        print("Checkmate")
+                        sys.exit("\n")
+                    else:
+                        print("Opponent is in check")
+
+                colourTurn = not(colourTurn) # switches the colour Turn
+            time.sleep(1)
 
 
 
