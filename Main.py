@@ -9,11 +9,12 @@ import functools
 seed = random.randint(0,99999999)
 # seed = 90061043
 random.seed(seed)
+
 # 90061043
 # 50586168
 # 17152963
 # 25707880
-
+# 43176964
 
 # need to add logic for stalemate
 
@@ -159,12 +160,11 @@ def get_random_move(colourTurn,state):
                     all_moves.append((xxx,yyy,move[0], move[1]))
     return all_moves
 
-# Not exactly exhaustive search but oh well
 def check_insuffiececnt_pieces(state):
     for yyy in range(8):
         for xxx in range(8):
             cur = state[yyy][xxx]
-            if cur.Type not in ["pawn", "bishop", "king", None]:
+            if cur.Type not in ["pawn", "king","bishop",None]:
                 return False
     return True
 
@@ -179,7 +179,13 @@ def get_unchecked(state,colourTurn):
                 return (xxx,yyy,move[0],move[1])
 
 
-
+# def check_stalemate(state,colourTurn):
+#     allMoves,king_pos = K.get_all_moves(colourTurn,state)
+#     moves = M.get_moves_king(king_pos[0],king_pos[1],state)
+#     for move in moves:
+#         if (move not in K.get_all_moves(not(colourTurn,state))) and allMoves == []:
+#             return False
+#     return True
     
 
 # https://stackoverflow.com/questions/9882280/find-out-if-a-function-has-been-called/9882439#9882439
@@ -213,8 +219,8 @@ def get_AI_move(state,colourTurn,prevMoves, isCheck):
 if __name__=="__main__":
     state = create_board()
     print("IMPORTANT: White pieces are uppercase, black pieces are lowercase")
-    # mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
-    mode = 3
+    mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
+    # mode = 3
 
 
     if mode == 1:
@@ -227,6 +233,7 @@ if __name__=="__main__":
         # gets the modulus of the differnce between the randomNum and the users guess
         diffU1 = abs(randomNum - guessU1)
         diffU2 = abs(randomNum - guessU2)
+
 
         if min(diffU1,diffU2) == diffU1:
             print(f"{U1Name}, you are white \n")
@@ -243,10 +250,14 @@ if __name__=="__main__":
             elif colourTurn == False and colourTurn != AITurn:
                 print(f"It is black's ({U2Name})move\n")
 
-            if isCheck == True:
-                print("Check has been instaniated, either move the king or move a piece into the way\n")
+
+            if check_insuffiececnt_pieces(state):
+                print("Not enough pieces to continue :( ")
+                sys.exit("\n")
+
             if not(colourTurn == AITurn):
                 print_row(state)
+
             if colourTurn == AITurn:
                 userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
             else:
@@ -261,7 +272,7 @@ if __name__=="__main__":
                 state[y1][x1] = Piece(None,None,None)
                 prevMoves.append((x1,y1,x2,y2))
                 
-                if isCheck and K.get_check(colourTurn,state):
+                if K.get_check(colourTurn,state):
                     print("ERROR: king in check")
                     state[y1][x1] = org
                     state[y2][x2] = trg
@@ -270,19 +281,22 @@ if __name__=="__main__":
                 if state[y2][x2]:
                     state[y2][x2].FirstMove = False
 
+                colourTurn = not(colourTurn) # switches the colour Turn
+                    
                 if K.get_check(colourTurn, state):
-                    isCheck = True
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
 
-                if check_insuffiececnt_pieces(state):
-                    print("Not enough pieces to continue :( ")
-                    sys.exit("\n")
+
                 
-                colourTurn = not(colourTurn) # switches the colour Turn
+                # if check_stalemate(state,colourTurn):
+                #     print("You are in stalemate")
+                #     sys.exit("\n")
+                
+
 
 
     if mode == 2:
@@ -311,20 +325,21 @@ if __name__=="__main__":
             else:
                 print(f"It is black's ({U2Name}) move\n")
 
-            if isCheck == True:
-                print("Check has been instaniated, either move the king or move a piece into the way\n")
+            if check_insuffiececnt_pieces(state):
+                print("Not enough pieces to continue :( ")
+                sys.exit("\n")
+
             print_row(state)
             userInput = get_input()
 
             if M.check_valid(userInput,colourTurn,state):
-
                 x1,y1,x2,y2 = userInput
                 org = state[y1][x1]
                 trg = state[y2][x2]
                 state[y2][x2] = org
                 state[y1][x1] = Piece(None,None,None)
 
-                if isCheck and K.get_check(colourTurn,state):
+                if K.get_check(colourTurn,state):
                     print("ERROR: king in check")
                     state[y1][x1] = org
                     state[y2][x2] = trg
@@ -333,18 +348,21 @@ if __name__=="__main__":
                 if state[y2][x2]:
                     state[y2][x2].FirstMove = False
 
+                colourTurn = not(colourTurn) # switches the colour Turn
+
                 if K.get_check(colourTurn, state):
-                    isCheck = True
                     if K.get_checkmate(colourTurn, state):
                         print("Checkmate")
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
 
-                if check_insuffiececnt_pieces(state):
-                    print("Not enough pieces to continue :( ")
-                    sys.exit("\n")
-                colourTurn = not(colourTurn) # switches the colour Turn
+
+
+                # if check_stalemate(state,colourTurn):
+                #     print("You are in stalemate")
+                #     sys.exit("\n")
+                
 
     if mode == 3:
         U1Name = "AI 1"
@@ -370,9 +388,11 @@ if __name__=="__main__":
                 print(f"It is white's ({U1Name}) move\n")
             else:
                 print(f"It is black's ({U2Name}) move\n")
-
             print_row(state)
             
+            if check_insuffiececnt_pieces(state):
+                print("Not enough pieces to continue :( ")
+                sys.exit("\n")
             userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
             print(userInput)
             if M.check_valid(userInput,colourTurn,state):
@@ -404,10 +424,15 @@ if __name__=="__main__":
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
+                    
                 
-                if check_insuffiececnt_pieces(state):
-                    print("Not enough pieces to continue :( ")
-                    sys.exit("\n")
+
+
+                # if check_stalemate(state,colourTurn):
+                #     print("You are in stalemate")
+                #     sys.exit("\n")
+                
+
                 
 
 
