@@ -240,8 +240,8 @@ def get_AI_move(state,colourTurn,prevMoves, isCheck):
 if __name__=="__main__":
     state = create_board()
     print("IMPORTANT: White pieces are uppercase, black pieces are lowercase")
-    mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
-    # mode = 3
+    # mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
+    mode = 3
 
 
     if mode == 1:
