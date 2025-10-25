@@ -622,6 +622,6 @@ int main(int argc, char* argv[])
     uint64_t bin_str{std::stoull(argv[2])};
     std::vector<Piece> allPieces(64);
     bool colour{setFEN(aFEN, allPieces, bin_str)};
-    MinimaxRes res {find_best_move(4,colour,allPieces)};
+    MinimaxRes res {find_best_move(5,colour,allPieces)};
     std::cout << res.bestMove.from << " " << res.bestMove.to << "\n";
 };

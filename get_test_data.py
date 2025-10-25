@@ -8,6 +8,8 @@ import time
 import functools
 import json
 from statistics import mean
+import psutil
+
 
 
 
@@ -191,8 +193,7 @@ def get_unchecked(state,colourTurn):
 #             return False
 #     return True
     
-# https://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file
-def save_data(data, filename="chess_games.json"):
+def save_data(data, filename="alpha-beta-tuning-depth5.json"):
     try:
         with open(filename, "r") as file:
             allPrevGames = json.load(file)
@@ -209,8 +210,6 @@ def save_data(data, filename="chess_games.json"):
 
 
 
-# https://stackoverflow.com/questions/9882280/find-out-if-a-function-has-been-called/9882439#9882439
-# https://stackoverflow.com/questions/41171791/how-to-suppress-or-capture-the-output-of-subprocess-run
 @trackcalls
 def get_AI_move(state,colourTurn,prevMoves, isCheck):
 
@@ -239,6 +238,15 @@ def get_AI_move(state,colourTurn,prevMoves, isCheck):
 
 if __name__=="__main__":
     for iii in range(1000):
+        print(f"there has been {iii} iterations")
+        temps = psutil.sensors_temperatures()
+
+        coreTemps = []
+        for core in temps.get("coretemp", []):
+            if core.label.startswith("Core"):
+                coreTemps.append(core.current)
+
+        temp = (sum(coreTemps) / len(coreTemps))
         seed = random.randint(0,99999999)
         random.seed(seed)
         StartTime = time.time()
@@ -256,14 +264,6 @@ if __name__=="__main__":
         diffU1 = abs(randomNum - guessU1)
         diffU2 = abs(randomNum - guessU2)
 
-        if min(diffU1,diffU2) == diffU1:
-            print(f"{U1Name}, you are white")
-        else:
-            print(f"{U2Name}, you are white")
-            temp = U2Name
-            U2Name = U1Name
-            U1Name = temp
-
         game_over = False
         move_count = 0
         max_moves = 500  
@@ -271,10 +271,6 @@ if __name__=="__main__":
         while not game_over and move_count < max_moves:
             move_count += 1
             
-            if not timesUser1:
-                timesUser1 = 0
-            if not timesUser2:
-                timesUser2 = 0
 
             if check_insuffiececnt_pieces(state):
                 data = {
@@ -285,8 +281,7 @@ if __name__=="__main__":
                     "duration": time.time() - StartTime,
                     "moves": move_count,
                     "final_pos": board_to_fen(state, colourTurn),
-                    "avg_time_user1": mean(timesUser1),
-                    "avg_time_user2": mean(timesUser2)
+                    "core_temp":temp
                 }
                 save_data(data)
                 game_over = True
@@ -322,10 +317,7 @@ if __name__=="__main__":
                 
                 if K.get_check(colourTurn, state):
                     if K.get_checkmate(colourTurn, state):
-                        if not timesUser1:
-                            timesUser1 = 0
-                        if not timesUser2:
-                            timesUser2 = 0
+
                         data = {
                             "seed": seed,
                             "mode": 3,
@@ -334,8 +326,7 @@ if __name__=="__main__":
                             "duration": time.time() - StartTime,
                             "moves": move_count,
                             "final_pos": board_to_fen(state, colourTurn),
-                            "avg_time_user1": mean(timesUser1),
-                            "avg_time_user2": mean(timesUser2),
+                            "core_temp":temp
                         }
                         save_data(data)
                         game_over = True
@@ -350,8 +341,7 @@ if __name__=="__main__":
                 "duration": time.time() - StartTime,
                 "moves": move_count,
                 "final_pos": board_to_fen(state, colourTurn),
-                "avg_time_user1": mean(timesUser1) if timesUser1 else 0,
-                "avg_time_user2": mean(timesUser2) if timesUser2 else 0,
+                "core_temp":temp
             }
             save_data(data)
         
