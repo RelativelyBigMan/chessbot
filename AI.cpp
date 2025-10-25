@@ -64,24 +64,6 @@ struct Move {
 };
 
 
-struct allMoves {
-    std::vector<Move> pawn{}; // 16
-    std::vector<Move> knight{}; // 16
-    std::vector<Move> bishop{}; // 28
-    std::vector<Move> rook{}; // 28
-    std::vector<Move> queen{}; // 28
-    std::vector<Move> king{}; // 8
-
-    allMoves() {
-        pawn.reserve(32);
-        knight.reserve(16);
-        bishop.reserve(28);
-        rook.reserve(28);
-        queen.reserve(28);
-        king.reserve(8);
-    }
-};
-
 
 
 struct Piece
@@ -177,14 +159,14 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Move>& moveArray){
 }
 
 
-void get_moves_rook(int index, const std::vector<Piece>& allPieces, allMoves& M) {
+void get_moves_rook(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M) {
     Piece org = allPieces[index];
     for (int i = index + WEST; inBounds(i) && i / 8 == index / 8; i += WEST) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.rook.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.rook.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -192,9 +174,9 @@ void get_moves_rook(int index, const std::vector<Piece>& allPieces, allMoves& M)
     for (int i = index + EAST; inBounds(i) && i / 8 == index / 8; i += EAST) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.rook.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.rook.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -202,18 +184,18 @@ void get_moves_rook(int index, const std::vector<Piece>& allPieces, allMoves& M)
     for (int i = index + NORTH; inBounds(i); i += NORTH) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.rook.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.rook.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
     for (int i = index + SOUTH; inBounds(i);i += SOUTH) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.rook.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.rook.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -222,7 +204,7 @@ void get_moves_rook(int index, const std::vector<Piece>& allPieces, allMoves& M)
 
 
 //seems somewhat buggy might change to the same implementation as my python
-void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& M) {
+void get_bishop_moves(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M) {
 
     Piece org = allPieces[index];
     int movesToNorth{7 - (index / 8)};
@@ -243,13 +225,13 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -260,13 +242,13 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -277,13 +259,13 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -294,13 +276,13 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.bishop.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -309,7 +291,7 @@ void get_bishop_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
 }
 
 // deltas = [(-2, -1), (-2, 1), (2, -1), (2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2)] 
-void get_king_moves(int index, const std::vector<Piece>& allPieces, allMoves& M){
+void get_king_moves(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M){
     Piece org{allPieces[index]};
     for (int i:KING_DELTA){
         int newIndex = index+i;
@@ -324,13 +306,13 @@ void get_king_moves(int index, const std::vector<Piece>& allPieces, allMoves& M)
         Piece trg = allPieces[newIndex];
         
         if (trg.type == NOPIECE || trg.Colour != org.Colour){
-            M.king.push_back({index,newIndex});
+            M.push_back({index,newIndex});
         }
     }
 };
 
 // deltas = [(-2, -1), (-2, 1), (2, -1), (2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2)]  
-void get_knight_moves(int index, const std::vector<Piece>& allPieces, allMoves& M){
+void get_knight_moves(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M){
     Piece org{allPieces[index]};
     for (int i:KNIGHT_DELTA){
         int newIndex = index+i;
@@ -344,12 +326,12 @@ void get_knight_moves(int index, const std::vector<Piece>& allPieces, allMoves& 
         Piece trg = allPieces[newIndex];
         
         if (trg.type == NOPIECE || trg.Colour != org.Colour){
-            M.knight.push_back({index,newIndex});
+            M.push_back({index,newIndex});
         }
     }
 };
 
-void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M){
+void get_queen_moves(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M){
     Piece org = allPieces[index];
     int movesToNorth{7 - (index / 8)};
     int movesToSouth{index / 8};
@@ -368,13 +350,13 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -385,13 +367,13 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -401,13 +383,13 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -417,13 +399,13 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
         if (inBounds(i)){
             Piece trg = allPieces[i];
             if (trg.type == NOPIECE){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
             }
             else if(trg.Colour == org.Colour){
                 break;
             }
             else if (trg.Colour != org.Colour){
-                M.queen.push_back({index,i});
+                M.push_back({index,i});
                 break;
             }
         }
@@ -432,9 +414,9 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
     for (int i = index + WEST; inBounds(i) && i / 8 == index / 8; i += WEST) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.queen.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.queen.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -442,9 +424,9 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
     for (int i = index + EAST; inBounds(i) && i / 8 == index / 8; i += EAST) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.queen.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.queen.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -452,18 +434,18 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
     for (int i = index + NORTH; inBounds(i); i += NORTH) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.queen.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.queen.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
     for (int i = index + SOUTH; inBounds(i);i += SOUTH) {
         Piece trg = allPieces[i];
         if (trg.type == NOPIECE) {
-            M.queen.push_back({index,i});
+            M.push_back({index,i});
         } else {
-            if (trg.Colour != org.Colour) M.queen.push_back({index,i});
+            if (trg.Colour != org.Colour) M.push_back({index,i});
             break;
         }
     }
@@ -471,7 +453,7 @@ void get_queen_moves(int index, const std::vector<Piece>& allPieces, allMoves& M
 };
 
 
-void get_pawn_moves(int index, const std::vector<Piece>& allPieces, allMoves& M){
+void get_pawn_moves(int index, const std::vector<Piece>& allPieces, std::vector<Move>& M){
     Piece org{allPieces[index]};
     int direction{(org.Colour == WHITE) ? SOUTH : NORTH};
     // uses int instead of Piece directly because of out of bounds issues
@@ -481,22 +463,22 @@ void get_pawn_moves(int index, const std::vector<Piece>& allPieces, allMoves& M)
     int trg2{index + direction + WEST};
     
     if (inBounds(forward1) && allPieces[forward1].type == NOPIECE){
-        M.pawn.push_back({index,forward1});
+        M.push_back({index,forward1});
         if (org.firstMove && inBounds(forward2) && allPieces[forward2].type == NOPIECE){
-            M.pawn.push_back({index,forward2});
+            M.push_back({index,forward2});
         }
     }
 
     if (inBounds(trg1)) {
         Piece target1 = allPieces[trg1];
         if (target1.type != NOPIECE && target1.Colour != org.Colour && (!(abs((trg1 / 8) - (index / 8)) > 1 || abs((trg1 % 8) - (index % 8)) > 1))) {
-            M.pawn.push_back({index,trg1});
+            M.push_back({index,trg1});
         }
     }
     if (inBounds(trg2)) {
         Piece target2 = allPieces[trg2];
         if (target2.type != NOPIECE && target2.Colour != org.Colour && (!(abs((trg2 / 8) - (index / 8)) > 1 || abs((trg2 % 8) - (index % 8)) > 1))) {
-            M.pawn.push_back({index,trg2});
+            M.push_back({index,trg2});
         }
     }
 }
@@ -523,7 +505,7 @@ int eval(const std::vector<Piece>& allPieces,bool colour){
     return score;
 }
 
-void get_all_moves(const std::vector<Piece>& allPieces, allMoves& M, bool colour){
+void get_all_moves(const std::vector<Piece>& allPieces, std::vector<Move>& M, bool colour){
     for (int i{0}; i<64; ++i){
         Piece cur = allPieces[i];
         if (!(cur.type == NOPIECE) && (colour == cur.Colour)){
@@ -559,33 +541,35 @@ std::vector<Piece> make_move(const std::vector<Piece>& allPieces, const Move& mo
 
 
 
-int minimax(int depth, bool colour, const std::vector<Piece>& allPieces){
+int minimax(int depth, bool colour, const std::vector<Piece>& allPieces, int alpha, int beta){
     if (depth == 0){
         return eval(allPieces,colour);
     }
 
-    allMoves M{};
-    get_all_moves(allPieces, M, colour);
-    std::vector<Move> allPossibleMoves{};
-    allPossibleMoves.insert(allPossibleMoves.end(), M.pawn.begin(), M.pawn.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.queen.begin(), M.queen.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.bishop.begin(), M.bishop.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.king.begin(), M.king.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.knight.begin(), M.knight.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.rook.begin(), M.rook.end());
 
-    if (allPossibleMoves.empty()) {
+    
+    std::vector<Move> M{};
+    get_all_moves(allPieces, M, colour);
+
+
+    if (M.empty()) {
     return eval(allPieces, colour);  // or handle checkmate/stalemate
     }
-    int bestEval = colour ? -999999 : 999999;
-    for (Move move: allPossibleMoves){
-        auto newAllPieces = make_move(allPieces, move);
-        int evalValue = minimax(depth - 1, !colour, newAllPieces);
 
-        if (colour)
+    int bestEval = colour ? -999999 : 999999;
+    for (Move move: M){
+        auto newAllPieces = make_move(allPieces, move);
+        int evalValue = minimax(depth - 1, !colour, newAllPieces, alpha, beta);
+
+        if (colour){
             bestEval = std::max(bestEval, evalValue);
-        else
+            alpha = std::max(alpha, evalValue);
+            if (beta <= alpha) break;
+        } else {
             bestEval = std::min(bestEval, evalValue);
+            beta = std::min(beta, evalValue);
+            if (beta <= alpha) break;
+        }
     }
 
     return bestEval;
@@ -599,29 +583,24 @@ struct MinimaxRes{
 
 // does minimax recursion on all moves after the intital moves so that it dosent need to return MinimaxRes struct on every return
 MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allPieces){
-    allMoves M{};
+    std::vector<Move> M{};
     get_all_moves(allPieces, M, colour);
-    std::vector<Move> allPossibleMoves{};
-    // std::cout << M.pawn;
-    allPossibleMoves.insert(allPossibleMoves.end(), M.pawn.begin(), M.pawn.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.queen.begin(), M.queen.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.bishop.begin(), M.bishop.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.king.begin(), M.king.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.knight.begin(), M.knight.end());
-    allPossibleMoves.insert(allPossibleMoves.end(), M.rook.begin(), M.rook.end());
+
+    int alpha = -999999;
+    int beta = 999999;
 
     int bestEval = colour ? -999999 : 999999;
     Move bestMove;
-    for (Move move: allPossibleMoves){
+    for (Move move: M){
         auto newAllPieces = make_move(allPieces, move);
-        int evalValue = minimax(depth - 1, !colour, newAllPieces);
+        int evalValue = minimax(depth - 1, !colour, newAllPieces, -999999, 999999);
 
-        if (colour) {
+        if (colour) { 
             if (evalValue > bestEval) {
                 bestEval = evalValue;
                 bestMove = move;
             }
-        } else {
+        } else { 
             if (evalValue < bestEval) {
                 bestEval = evalValue;
                 bestMove = move;
@@ -629,7 +608,6 @@ MinimaxRes find_best_move(int depth, bool colour, const std::vector<Piece>& allP
         }
     }
     return {bestEval,bestMove};
-
 };
 
 
@@ -642,8 +620,6 @@ int main(int argc, char* argv[])
 {
     std::string aFEN{argv[1]};
     uint64_t bin_str{std::stoull(argv[2])};
-
-
     std::vector<Piece> allPieces(64);
     bool colour{setFEN(aFEN, allPieces, bin_str)};
     MinimaxRes res {find_best_move(4,colour,allPieces)};

@@ -16,7 +16,7 @@ from statistics import mean
 # 17152963
 # 25707880
 # 43176964
-
+moves = 0
 seed = random.randint(0,99999999)
 random.seed(seed)
 AITurn = False
@@ -240,8 +240,8 @@ def get_AI_move(state,colourTurn,prevMoves, isCheck):
 if __name__=="__main__":
     state = create_board()
     print("IMPORTANT: White pieces are uppercase, black pieces are lowercase")
-    # mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
-    mode = 3
+    mode = int(input("Pick a mode singleplayer, multiplayer or simulation: 1,2 and 3 respectively: "))
+    # mode = 3
 
 
     if mode == 1:
@@ -265,7 +265,7 @@ if __name__=="__main__":
             U1Name = temp
             AITurn = True
         
-        while True:
+        while moves < 500:
             if colourTurn == True and colourTurn != AITurn:
                 print(f"It is white's ({U1Name}) move\n")
             elif colourTurn == False and colourTurn != AITurn:
@@ -291,7 +291,11 @@ if __name__=="__main__":
                 print_row(state)
 
             initialTime = time.time()
-            userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
+            if colourTurn == AITurn:
+                userInput = get_AI_move(state,colourTurn,prevMoves,isCheck)
+            else:
+                userInput = get_input()
+            
             timeTook = time.time() - initialTime
             if colourTurn == AITurn:
                 timesUser1.append(timeTook)
@@ -300,7 +304,7 @@ if __name__=="__main__":
 
 
             if M.check_valid(userInput,colourTurn,state):
-
+                moves += 1
                 x1,y1,x2,y2 = userInput
                 org = state[y1][x1]
                 trg = state[y2][x2]
@@ -337,12 +341,21 @@ if __name__=="__main__":
                     else:
                         print("Opponent is in check")
 
+        if moves > 500:
+            print("stalemate")
+            sys.exit("\n")
+            data = {
+                "seed": seed,
+                "mode": mode,
+                "winner": "White" if not colourTurn else "Black",
+                "ending": "stalemate",
+                "time": int(time.time()),
+                "final_pos": board_to_fen(state, colourTurn),
+                "avg_time_for_User1": mean(timesUser1),
+                "avg_time_for_User2": mean(timesUser2),
+            }
+            save_data(data)
 
-                
-                # if check_stalemate(state,colourTurn):
-                #     print("You are in stalemate")
-                #     sys.exit("\n")
-                
 
 
 
@@ -366,7 +379,7 @@ if __name__=="__main__":
             U1Name = temp
 
 
-        while True:
+        while moves < 500:
             if colourTurn == True:
                 print(f"It is white's ({U1Name}) move\n")
             else:
@@ -398,6 +411,7 @@ if __name__=="__main__":
 
 
             if M.check_valid(userInput,colourTurn,state):
+                moves += 1
                 x1,y1,x2,y2 = userInput
                 org = state[y1][x1]
                 trg = state[y2][x2]
@@ -432,12 +446,20 @@ if __name__=="__main__":
                         sys.exit("\n")
                     else:
                         print("Opponent is in check")
-
-
-
-                # if check_stalemate(state,colourTurn):
-                #     print("You are in stalemate")
-                #     sys.exit("\n")
+        if moves > 500:
+            print("stalemate")
+            sys.exit("\n")
+            data = {
+                "seed": seed,
+                "mode": mode,
+                "winner": "White" if not colourTurn else "Black",
+                "ending": "stalemate",
+                "time": int(time.time()),
+                "final_pos": board_to_fen(state, colourTurn),
+                "avg_time_for_User1": mean(timesUser1),
+                "avg_time_for_User2": mean(timesUser2),
+            }
+            save_data(data)
                 
 
     if mode == 3:
@@ -459,7 +481,7 @@ if __name__=="__main__":
             U1Name = temp
 
 
-        while True:
+        while moves < 500:
             if colourTurn == True:
                 print(f"It is white's ({U1Name}) move\n")
             else:
@@ -490,6 +512,7 @@ if __name__=="__main__":
                 timesUser1.append(timeTook)
             
             if M.check_valid(userInput,colourTurn,state):
+                moves += 1
                 x1,y1,x2,y2 = userInput
                 org = state[y1][x1]
                 trg = state[y2][x2]
@@ -528,13 +551,21 @@ if __name__=="__main__":
                         save_data(data)
                     else:
                         print("Opponent is in check")
-                    
+        if moves > 500:
+            print("stalemate")
+            sys.exit("\n")
+            data = {
+                "seed": seed,
+                "mode": mode,
+                "winner": "White" if not colourTurn else "Black",
+                "ending": "stalemate",
+                "time": int(time.time()),
+                "final_pos": board_to_fen(state, colourTurn),
+                "avg_time_for_User1": mean(timesUser1),
+                "avg_time_for_User2": mean(timesUser2),
+            }
+            save_data(data)
 
-
-
-                # if check_stalemate(state,colourTurn):
-                #     print("You are in stalemate")
-                #     sys.exit("\n")
                 
 
                 
